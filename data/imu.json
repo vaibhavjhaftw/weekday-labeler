@@ -1,0 +1,37 @@
+{
+  "rate_hz": 50.0,
+  "samples": 136149,
+  "span_s": 2722.975826740265,
+  "order": [
+    "left",
+    "right"
+  ],
+  "channels": [
+    "accel_x_mps2",
+    "accel_y_mps2",
+    "accel_z_mps2",
+    "gyro_x_rad_s",
+    "gyro_y_rad_s",
+    "gyro_z_rad_s"
+  ],
+  "scales": [
+    0.0012207403790398877,
+    0.0012207403790398877,
+    0.0012207403790398877,
+    0.0006103701895199438,
+    0.0006103701895199438,
+    0.0006103701895199438
+  ],
+  "dtype": "int16le",
+  "layout": "wrist-major, then channel-major, then time",
+  "wrists": {
+    "left": {
+      "source": "fort_left",
+      "samples": 270880
+    },
+    "right": {
+      "source": "fort_right",
+      "samples": 273384
+    }
+  }
+}

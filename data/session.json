@@ -1,0 +1,207 @@
+{
+  "exercises": {
+    "pull_ups": {
+      "label": "Pullups",
+      "exercise_id": "Pullups",
+      "equipment": "body only",
+      "exercise_name": "Pullups",
+      "primary_muscles": [
+        "lats"
+      ],
+      "secondary_muscles": [
+        "biceps",
+        "middle back"
+      ],
+      "movement_pattern": "Vertical Pull",
+      "laterality": "bilateral",
+      "assistance_values": [
+        "assisted",
+        "unassisted",
+        "unknown"
+      ],
+      "assistance": "unknown",
+      "variations": [
+        "pronated grip",
+        "supinated grip",
+        "neutral grip",
+        "wide grip"
+      ]
+    },
+    "push_ups": {
+      "label": "Pushups",
+      "exercise_id": "Pushups",
+      "equipment": "body only",
+      "exercise_name": "Pushups",
+      "primary_muscles": [
+        "chest"
+      ],
+      "secondary_muscles": [
+        "shoulders",
+        "triceps"
+      ],
+      "movement_pattern": "Horizontal Push",
+      "laterality": "bilateral",
+      "assistance_values": [
+        "none"
+      ],
+      "assistance": "none",
+      "variations": [
+        "standard",
+        "narrow hand position",
+        "wide hand position",
+        "modified"
+      ]
+    },
+    "bodyweight_squats": {
+      "label": "Bodyweight Squat",
+      "exercise_id": "Bodyweight_Squat",
+      "exercise_name": "Bodyweight Squat",
+      "primary_muscles": [
+        "quadriceps"
+      ],
+      "secondary_muscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "equipment": "body only",
+      "movement_pattern": "Squat",
+      "laterality": "bilateral",
+      "assistance_values": [
+        "none"
+      ],
+      "assistance": "none",
+      "variations": [
+        "standard stance",
+        "narrow stance",
+        "wide stance"
+      ]
+    },
+    "bicep_curls": {
+      "label": "Barbell Curl",
+      "exercise_id": "Barbell_Curl",
+      "equipment": "barbell",
+      "exercise_name": "Barbell Curl",
+      "primary_muscles": [
+        "biceps"
+      ],
+      "secondary_muscles": [
+        "forearms"
+      ],
+      "movement_pattern": "Pull Isolation",
+      "laterality": "bilateral",
+      "assistance_values": [
+        "none"
+      ],
+      "assistance": "none",
+      "variations": [
+        "barbell",
+        "alternating dumbbell",
+        "simultaneous dumbbell",
+        "supinated grip"
+      ]
+    },
+    "shoulder_press": {
+      "label": "Dumbbell Shoulder Press",
+      "exercise_id": "Dumbbell_Shoulder_Press",
+      "exercise_name": "Dumbbell Shoulder Press",
+      "primary_muscles": [
+        "shoulders"
+      ],
+      "secondary_muscles": [
+        "triceps"
+      ],
+      "equipment": "dumbbell",
+      "movement_pattern": "Vertical Push",
+      "laterality": "bilateral",
+      "assistance_values": [
+        "none"
+      ],
+      "assistance": "none",
+      "variations": [
+        "seated",
+        "standing",
+        "alternating",
+        "simultaneous"
+      ]
+    }
+  },
+  "null_activities": [
+    "rest",
+    "transition",
+    "setup",
+    "non_exercise_motion",
+    "sync_gesture",
+    "discarded_set",
+    "other"
+  ],
+  "movement_patterns": [
+    {
+      "group": "Wrist detectable",
+      "options": [
+        "Squat",
+        "Horizontal Push",
+        "Vertical Pull",
+        "Push Isolation",
+        "Loaded Hinge",
+        "Vertical Push",
+        "Pull Isolation",
+        "Horizontal Pull",
+        "Dynamic Core"
+      ]
+    },
+    {
+      "group": "Not wrist detectable",
+      "options": [
+        "Leg Isolation",
+        "Hip-Dominant Floor/Machine",
+        "Isometric Core"
+      ]
+    }
+  ],
+  "laterality": [
+    "bilateral",
+    "unilateral"
+  ],
+  "recorded": {
+    "pull_ups:1": 10,
+    "pull_ups:2": 10,
+    "pull_ups:3": 10,
+    "pull_ups:4": 10,
+    "pull_ups:5": 10,
+    "push_ups:1": 10,
+    "push_ups:2": 10,
+    "push_ups:3": 9,
+    "push_ups:4": 8,
+    "push_ups:5": 10,
+    "bodyweight_squats:1": 10,
+    "bodyweight_squats:2": 10,
+    "bodyweight_squats:3": 10,
+    "bodyweight_squats:4": 10,
+    "bodyweight_squats:5": 10,
+    "bicep_curls:1": 10,
+    "bicep_curls:2": 10,
+    "bicep_curls:3": 10,
+    "bicep_curls:4": 10,
+    "bicep_curls:5": 10,
+    "shoulder_press:1": 10,
+    "shoulder_press:2": 10,
+    "shoulder_press:3": 10,
+    "shoulder_press:4": 10,
+    "shoulder_press:5": 8
+  },
+  "study_key": "strength_study",
+  "study_version": "v0",
+  "participant_id": "guru_20260831",
+  "session_id": "guru_20260831_1552",
+  "session_ref": "strength_study~v0~guru_20260831~guru_20260831_1552",
+  "span_s": 2722.975826740265,
+  "lsl_base": 1000.0,
+  "video_offset_s": -0.582,
+  "video_name": "Video_Guru_31_08_2026.MP4",
+  "video_bytes": 13291651676,
+  "video_duration_s": null,
+  "wrists": [
+    "left",
+    "right"
+  ]
+}

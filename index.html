@@ -1,0 +1,1120 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fort Session Labeler — Guru 31 Aug</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>🏋️</text></svg>">
+<style>
+  :root{
+    --bg:#14161a; --panel:#1c2027; --panel2:#232833; --line:#333a46;
+    --ink:#e8ecf2; --ink2:#98a2b3; --accent:#4a9eff; --ok:#3ecf8e; --warn:#e0a54a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:13px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+  header{display:flex;align-items:center;gap:12px;padding:9px 16px;flex-wrap:wrap;
+         background:var(--panel);border-bottom:1px solid var(--line);
+         position:sticky;top:0;z-index:20}
+  header h1{font-size:14px;margin:0;font-weight:650;letter-spacing:.2px;white-space:nowrap}
+  header .sub{color:var(--ink2);font-size:12px}
+  header .spacer{flex:1}
+  button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+         border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:550}
+  button:hover:not(:disabled){border-color:var(--accent)}
+  button:disabled{opacity:.4;cursor:default}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#06121f}
+  button.danger{color:#ff8a80;border-color:#5a3434}
+  .wrap{padding:12px 16px;display:flex;flex-direction:column;gap:12px}
+  .row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  video{width:100%;background:#000;border-radius:8px;display:block}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+  .kicker{font-size:10px;letter-spacing:.10em;text-transform:uppercase;color:var(--ink2);
+          font-weight:700;margin-bottom:6px}
+  canvas{display:block;width:100%;border-radius:6px;cursor:crosshair}
+  #ov{height:120px}
+  #det{height:420px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
+  .big{font-size:26px;font-weight:680;letter-spacing:-.5px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--ink2);font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+  tr.seg{cursor:pointer}
+  tr.seg:hover{background:var(--panel2)}
+  .swatch{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:7px}
+  .modal{position:fixed;inset:0;background:rgba(6,8,12,.72);display:flex;
+         align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal .card{width:660px;max-width:100%;max-height:88vh;overflow:auto}
+  label.f{display:block;margin:9px 0}
+  label.f span{display:block;color:var(--ink2);font-size:11px;margin-bottom:3px}
+  input,select,textarea{width:100%;background:var(--bg);color:var(--ink);
+    border:1px solid var(--line);border-radius:5px;padding:6px 8px;font-size:13px;
+    font-family:inherit}
+  input.mono{font-family:ui-monospace,Menlo,monospace}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;
+      border-radius:4px;padding:1px 5px;font-size:11px;font-family:ui-monospace,Menlo,monospace}
+  .hint{color:var(--ink2);font-size:11px}
+  .pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;
+        background:var(--panel2);border:1px solid var(--line);white-space:nowrap}
+  .pill.on{background:rgba(62,207,142,.15);border-color:var(--ok);color:var(--ok)}
+  .pill.warn{background:rgba(224,165,74,.15);border-color:var(--warn);color:var(--warn)}
+  .pill.rate{background:rgba(74,158,255,.15);border-color:var(--accent);color:#9ecbff;
+             font-family:ui-monospace,Menlo,monospace;font-weight:700;min-width:52px;
+             text-align:center}
+  select.inline{width:auto;padding:4px 8px;font-size:12px}
+
+  /* Annotated-moment strip */
+  .strip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 8px}
+  .shot{flex:0 0 auto;width:170px;background:var(--panel2);border:1px solid var(--line);
+        border-radius:6px;overflow:hidden;cursor:pointer}
+  .shot:hover{border-color:var(--accent)}
+  .shot.cur{border-color:var(--ok);box-shadow:0 0 0 1px var(--ok) inset}
+  .shot .im,.shot .ph{display:block;width:100%;height:96px;background:#000}
+  .shot .ph{display:flex;align-items:center;justify-content:center;color:var(--ink2);
+            font-size:10px;font-family:ui-monospace,Menlo,monospace;text-align:center;padding:0 6px}
+  .shot .cap{padding:5px 7px;font-size:11px;line-height:1.4}
+  .shot .jump{display:flex;border-top:1px solid var(--line)}
+  .shot .jump button{flex:1;border:0;border-radius:0;padding:4px 0;font-size:10px;
+                     background:transparent;color:var(--ink2);font-weight:600}
+  .shot .jump button:hover{background:var(--accent);color:#06121f}
+  .shot .jump button+button{border-left:1px solid var(--line)}
+  #hovShot{position:fixed;z-index:40;pointer-events:none;display:none;background:#000;
+           border:1px solid var(--line);border-radius:6px;overflow:hidden;
+           box-shadow:0 10px 28px rgba(0,0,0,.6)}
+  #hovShot img{display:block;width:208px;height:117px;background:#000}
+  #hovShot .t{font:11px ui-monospace,Menlo,monospace;color:var(--ink);
+              background:var(--panel2);padding:3px 6px;text-align:center}
+
+  /* Video gate */
+  .gate{border:1px dashed var(--line);border-radius:8px;padding:26px 18px;text-align:center;
+        background:var(--panel);width:100%}
+  .gate.hot{border-color:var(--accent);background:rgba(74,158,255,.07)}
+  .gate h2{margin:0 0 6px;font-size:14px}
+  .boot{padding:40px 16px;text-align:center;color:var(--ink2)}
+</style>
+
+<header>
+  <h1>Fort Session Labeler</h1>
+  <span class="sub mono" id="sessLabel">loading…</span>
+  <span class="spacer"></span>
+  <span class="pill rate" id="rate">1x</span>
+  <span class="pill" id="markPill">no mark</span>
+  <span style="display:flex;align-items:center;gap:6px;white-space:nowrap">
+    <span class="sub">labels</span>
+    <select class="inline" id="selSet"></select>
+  </span>
+  <button id="btnVideo">Load video…</button>
+  <button id="btnExport" class="primary">Export JSON</button>
+</header>
+
+<div class="boot" id="boot">loading session data…</div>
+
+<div class="wrap" id="main" style="display:none">
+  <div class="row">
+    <div style="flex:2.2;min-width:320px">
+      <video id="vid" preload="metadata" playsinline controls style="display:none"></video>
+      <div class="gate" id="gate">
+        <h2>Play the video from this Mac</h2>
+        <p class="hint" style="margin:0 0 12px">
+          Nothing is uploaded. The file is opened straight off your disk, so seeking stays
+          frame-accurate and the recording never leaves the machine.<br>
+          Drop <b class="mono" id="gateName"></b> here, or pick it.
+        </p>
+        <button id="btnPick2" class="primary">Choose video file…</button>
+        <p class="hint" style="margin:12px 0 0">
+          Without it everything below still works — timeline, sensor traces and every
+          labelled interval. Only the frame previews need the file.
+        </p>
+      </div>
+      <div class="hint mono" id="vidPath" style="margin-top:5px"></div>
+    </div>
+    <div class="card" style="flex:1;min-width:290px">
+      <div class="kicker">Playhead &middot; session seconds</div>
+      <div class="big mono" id="tSession">0.000</div>
+      <div class="hint mono" id="tVideo"></div>
+      <div style="height:10px"></div>
+      <div class="kicker">Mark</div>
+      <div class="mono" id="markInfo">in — &nbsp; out —</div>
+      <div style="height:10px"></div>
+      <div class="kicker">Reps</div>
+      <div class="big mono" id="repCount">0</div>
+      <div class="hint mono" id="repSpan">—</div>
+      <div style="height:12px"></div>
+      <div class="grid2">
+        <button id="btnIn">Mark in <kbd>I</kbd></button>
+        <button id="btnOut">Mark out <kbd>O</kbd></button>
+        <button id="btnTap">Tap rep <kbd>R</kbd></button>
+        <button id="btnEnd">End reps <kbd>E</kbd></button>
+      </div>
+      <div style="height:8px"></div>
+      <button id="btnClear" class="danger" style="width:100%">Clear marks <kbd>Esc</kbd></button>
+      <div style="height:10px"></div>
+      <div class="hint">
+        <kbd>space</kbd> play &middot; <kbd>←</kbd><kbd>→</kbd> 10s &middot;
+        <kbd>⇧</kbd>+arrow 1s &middot; <kbd>,</kbd><kbd>.</kbd> frame<br>
+        <kbd>J</kbd> slower &middot; <kbd>K</kbd> 1x &middot; <kbd>L</kbd> faster
+        &middot; steps of 0.25, max 3x
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="kicker">Whole session &middot; click to seek &middot; drag to zoom &middot; hover for a frame</div>
+    <canvas id="ov" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="kicker" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span>Detail <span class="mono" id="winLabel"></span></span>
+      <span style="flex:1"></span>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;
+                    letter-spacing:0;font-weight:550;cursor:pointer">
+        <input type="checkbox" id="cbFollow" checked style="width:auto;margin:0">
+        follow video
+      </label>
+      <span style="text-transform:none;letter-spacing:0;font-weight:550">ghost</span>
+      <select class="inline" id="selGhost"></select>
+      <select class="inline" id="selSpan">
+        <option value="30">30 s</option>
+        <option value="60">1 min</option>
+        <option value="120">2 min</option>
+        <option value="300" selected>5 min</option>
+        <option value="600">10 min</option>
+      </select>
+      <button id="btnZoomOut" style="padding:2px 8px">whole session</button>
+    </div>
+    <canvas id="det" height="420"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="kicker" style="display:flex;align-items:center;gap:12px">
+      <span>Annotated moments <span class="mono" id="stripCount"></span></span>
+      <span style="flex:1"></span>
+      <label style="display:flex;align-items:center;gap:5px;text-transform:none;
+                    letter-spacing:0;font-weight:550;cursor:pointer">
+        <input type="checkbox" id="cbShots" checked style="width:auto;margin:0">
+        frame previews
+      </label>
+    </div>
+    <div class="strip" id="strip"></div>
+    <div class="hint" id="stripHint"></div>
+  </div>
+
+  <div class="card">
+    <div class="kicker" style="display:flex;align-items:center;gap:10px">
+      <span>Segments <span id="segCount"></span></span>
+      <span style="flex:1"></span>
+      <span class="pill" id="setState"></span>
+      <button id="btnCopy" style="padding:2px 8px">Copy into my labels</button>
+      <button id="btnReset" class="danger" style="padding:2px 8px">Reset my labels</button>
+    </div>
+    <table>
+      <thead><tr><th>type</th><th>exercise</th><th>set</th><th>start</th><th>end</th>
+                 <th>dur</th><th>reps</th><th>rpe</th><th></th></tr></thead>
+      <tbody id="segBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="modalHost"></div>
+<div id="hovShot"><img alt=""><div class="t"></div></div>
+<input type="file" id="filePick" accept="video/*,.mp4,.MP4,.mov,.MOV" style="display:none">
+
+<script>
+const $ = s => document.querySelector(s);
+const fmt = (v,n=3) => (v==null||Number.isNaN(Number(v))) ? '—' : Number(v).toFixed(n);
+const clock = s => { const m=Math.floor(s/60); return `${m}:${String(Math.floor(s-m*60)).padStart(2,'0')}`; };
+const GB = b => (b/1e9).toFixed(2)+' GB';
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID()
+  : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+      const r=Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16); }));
+
+let S=null, OV=null, IMU=null, SETS=[], SEGS=[], GHOST=null, view={a:0,b:0};
+let markIn=null, markOut=null, taps=[], repEnd=null;
+let follow=true, viewSpan=300, curSet='mine';
+const vid = $('#vid');
+
+/* ------------------------------------------------------------------- load */
+async function boot(){
+  const [sess, ov, imuHdr, idx] = await Promise.all([
+    fetch('data/session.json').then(r=>r.json()),
+    fetch('data/overview.json').then(r=>r.json()),
+    fetch('data/imu.json').then(r=>r.json()),
+    fetch('data/labels/index.json').then(r=>r.json()),
+  ]);
+  S = sess; OV = ov;
+  $('#boot').textContent = `loading sensor data (${(imuHdr.samples*imuHdr.channels.length*2*2/1e6).toFixed(1)} MB)…`;
+  const buf = await fetch('data/imu.bin').then(r=>r.arrayBuffer());
+  IMU = {...imuHdr, data: new Int16Array(buf)};
+
+  SETS = await Promise.all(idx.map(async m => ({...m, ...(await fetch('data/labels/'+m.file).then(r=>r.json()))})));
+  SETS.forEach(x => x.read_only = true);
+
+  $('#selSet').innerHTML =
+    `<option value="mine">My labels (this browser)</option>` +
+    SETS.map((s,i)=>`<option value="${i}">${s.title} · ${s.labeler_id}</option>`).join('');
+  $('#selGhost').innerHTML = `<option value="">none</option>` +
+    SETS.map((s,i)=>`<option value="${i}">${s.title}</option>`).join('');
+
+  $('#sessLabel').textContent =
+    `${S.participant_id} · ${S.session_id} · ${clock(S.span_s)} · ${S.wrists.join('+')}`;
+  $('#gateName').textContent = S.video_name;
+  $('#boot').style.display='none'; $('#main').style.display='';
+
+  view = viewFor(0); setWinLabel();
+  loadSet(localStorage.getItem(lsKey('cur')) || 'mine');
+  doClear(); showRate();
+  await restoreVideo();
+  requestAnimationFrame(tick);
+}
+
+/* -------------------------------------------------------------- label sets
+   "Mine" lives in this browser only. The delivered sets are read-only on
+   purpose: a reviewer who nudges a boundary while reading someone else's pass
+   has quietly rewritten the thing the agreement number is measured against. */
+const lsKey = k => `fort-labeler:${S.session_id}:${k}`;
+
+function loadSet(which){
+  curSet = which;
+  localStorage.setItem(lsKey('cur'), which);
+  $('#selSet').value = which;
+  if (which === 'mine'){
+    let mine = null;
+    try { mine = JSON.parse(localStorage.getItem(lsKey('mine')) || 'null'); } catch(e){}
+    SEGS = mine?.segments?.length ? mine.segments : [nullSeg(0, S.span_s)];
+  } else {
+    SEGS = structuredClone(SETS[Number(which)].segments);
+  }
+  refresh();
+}
+const readOnly = () => curSet !== 'mine';
+
+function saveMine(){
+  if (readOnly()) return;
+  localStorage.setItem(lsKey('mine'), JSON.stringify({
+    session_id: S.session_id, saved_at: new Date().toISOString(), segments: SEGS}));
+}
+
+function refresh(){
+  const ro = readOnly();
+  $('#setState').textContent = ro
+    ? `read-only · ${SETS[Number(curSet)].annotation_set_id.slice(0,8)} rev ${SETS[Number(curSet)].revision}`
+    : 'editable · saved in this browser';
+  $('#setState').className = 'pill' + (ro ? '' : ' on');
+  $('#btnReset').style.display = ro ? 'none' : '';
+  $('#btnCopy').style.display  = ro ? '' : 'none';
+  renderSegs(); renderStrip(); drawOv(); drawDet();
+}
+
+$('#selSet').onchange = e => loadSet(e.target.value);
+$('#selGhost').onchange = e => {
+  GHOST = e.target.value === '' ? null : SETS[Number(e.target.value)];
+  drawOv(); drawDet();
+};
+$('#btnCopy').onclick = ()=>{
+  const src = SETS[Number(curSet)];
+  if (!confirm(`Copy all ${src.segments.length} segments from ${src.title} into your own editable labels?\n\nThis replaces whatever is currently in "My labels".`)) return;
+  SEGS = structuredClone(src.segments).map(s=>({...s, segment_id: uuid()}));
+  curSet = 'mine'; saveMine(); loadSet('mine');
+};
+$('#btnReset').onclick = ()=>{
+  const ex = SEGS.filter(s=>s.label_type==='exercise').length;
+  if (!confirm(`Clear your labels for this session?\n\n${ex} exercise interval(s) will be removed and the timeline returns to a single rest span.`)) return;
+  SEGS = [nullSeg(0, S.span_s)]; saveMine(); doClear(); refresh();
+};
+
+/* ------------------------------------------------------------------- video
+   The file is opened locally. Chromium keeps a File System Access handle we can
+   store, so a reload re-opens the same file after one permission click; every
+   other browser falls back to <input type=file>, which must be re-picked each
+   session because a page cannot hold a path. */
+const IDB = 'fort-labeler-video';
+function idb(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open(IDB, 1);
+    r.onupgradeneeded = ()=> r.result.createObjectStore('h');
+    r.onsuccess = ()=> res(r.result); r.onerror = ()=> rej(r.error);
+  });
+}
+async function idbPut(k,v){ try{ const d=await idb();
+  await new Promise(r=>{ const t=d.transaction('h','readwrite'); t.objectStore('h').put(v,k); t.oncomplete=r; t.onerror=r; });
+}catch(e){} }
+async function idbGet(k){ try{ const d=await idb();
+  return await new Promise(r=>{ const t=d.transaction('h','readonly'); const q=t.objectStore('h').get(k);
+    q.onsuccess=()=>r(q.result); q.onerror=()=>r(null); });
+}catch(e){ return null; } }
+
+let videoURL = null;
+function useFile(file){
+  if (videoURL) URL.revokeObjectURL(videoURL);
+  videoURL = URL.createObjectURL(file);
+  vid.src = videoURL; shotSrc(videoURL);
+  vid.style.display=''; $('#gate').style.display='none';
+  const sizeOK = S.video_bytes ? file.size === S.video_bytes : true;
+  vid.addEventListener('loadedmetadata', ()=>{
+    $('#vidPath').innerHTML =
+      `${file.name} · ${GB(file.size)} · ${fmt(vid.duration,2)}s · offset ${fmt(S.video_offset_s)}s ` +
+      (sizeOK ? `<span style="color:var(--ok)">· matches the labelled capture</span>`
+              : `<span style="color:var(--warn)">· size differs from the labelled capture (${GB(S.video_bytes)}), timings may not line up</span>`);
+  }, {once:true});
+}
+async function pickVideo(){
+  if (window.showOpenFilePicker){
+    try {
+      const [h] = await showOpenFilePicker({types:[{description:'Session video',
+        accept:{'video/*':['.mp4','.MP4','.mov','.MOV','.m4v']}}]});
+      await idbPut('handle', h);
+      useFile(await h.getFile());
+      return;
+    } catch (err){ if (err?.name === 'AbortError') return; }
+  }
+  $('#filePick').click();
+}
+$('#filePick').onchange = e => { const f=e.target.files?.[0]; if (f) useFile(f); };
+$('#btnVideo').onclick = pickVideo;
+$('#btnPick2').onclick = pickVideo;
+
+async function restoreVideo(){
+  const h = await idbGet('handle');
+  if (!h?.queryPermission) return;
+  try {
+    if (await h.queryPermission({mode:'read'}) === 'granted') return useFile(await h.getFile());
+    $('#gate').insertAdjacentHTML('beforeend',
+      `<p class="hint" style="margin:10px 0 0">A video was opened here before — click above and Chrome will offer it again.</p>`);
+  } catch (e){}
+}
+
+const gate = $('#gate');
+['dragenter','dragover'].forEach(k=>gate.addEventListener(k,e=>{
+  e.preventDefault(); gate.classList.add('hot'); }));
+['dragleave','drop'].forEach(k=>gate.addEventListener(k,e=>{
+  e.preventDefault(); gate.classList.remove('hot'); }));
+gate.addEventListener('drop', e=>{
+  const f = e.dataTransfer?.files?.[0];
+  if (f) useFile(f);
+});
+const hasVideo = () => !!videoURL;
+
+/* -------------------------------------------------------------- speed */
+const RATES = [0.25,0.5,0.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3];
+function nearestRate(r){ let bi=0,bd=Infinity;
+  RATES.forEach((v,i)=>{const d=Math.abs(v-r); if(d<bd){bd=d;bi=i;}}); return bi; }
+function stepRate(dir){
+  vid.playbackRate = RATES[Math.max(0, Math.min(RATES.length-1, nearestRate(vid.playbackRate)+dir))];
+  showRate();
+}
+function showRate(){ $('#rate').textContent = `${vid.playbackRate}x`; }
+vid.addEventListener('ratechange', showRate);
+
+/* ------------------------------------------------------------ playhead */
+const sessionT = () => hasVideo() ? vid.currentTime + S.video_offset_s : cursor;
+const videoT   = t => t - S.video_offset_s;
+let cursor = 0;                      // stands in for the playhead with no video
+
+function viewFor(t){
+  const half = Math.min(viewSpan, S.span_s)/2;
+  let a=t-half, b=t+half;
+  if (a<0){ a=0; b=Math.min(S.span_s, viewSpan); }
+  if (b>S.span_s){ b=S.span_s; a=Math.max(0, S.span_s-viewSpan); }
+  return {a,b};
+}
+function setWinLabel(){
+  $('#winLabel').textContent =
+    `${clock(view.a)}–${clock(view.b)}  (${fmt(view.b-view.a,1)}s)` + (follow?'  · following':'');
+}
+$('#cbFollow').onchange = e => { follow = e.target.checked; setWinLabel(); };
+$('#selSpan').onchange = e => {
+  viewSpan = Number(e.target.value);
+  view = follow ? viewFor(sessionT()) : viewFor((view.a+view.b)/2);
+  setWinLabel(); drawDet();
+};
+$('#btnZoomOut').onclick = ()=>{
+  follow=false; $('#cbFollow').checked=false;
+  view={a:0,b:S.span_s}; setWinLabel(); drawDet();
+};
+
+let lastFrame = 0;
+function frame(){
+  const t = sessionT();
+  $('#tSession').textContent = fmt(t);
+  $('#tVideo').textContent = hasVideo()
+    ? `video ${fmt(vid.currentTime)} · offset ${fmt(S.video_offset_s)}`
+    : 'no video loaded — timeline only';
+  if (follow){
+    const v = viewFor(t);
+    if (Math.abs(v.a-view.a) > 1e-6){ view=v; setWinLabel(); }
+  }
+  drawOv(); drawDet(); markCurrentShot(t);
+  lastFrame = performance.now();
+}
+function tick(){
+  try { frame(); } catch (err){ console.error('frame error (loop kept alive):', err); }
+  requestAnimationFrame(tick);
+}
+setInterval(()=>{ if (performance.now()-lastFrame < 400) return;
+  try { frame(); } catch(err){ console.error('backstop frame error:', err); } }, 250);
+
+/* ------------------------------------------------------------- IMU access
+   One Int16Array for the whole session: wrist-major, then channel-major, then
+   time. Drawing takes a min/max per pixel column rather than every Nth sample
+   -- subsampling at 5 min per screen drops the single frame where a rep peaks,
+   which is exactly the feature you are looking for. */
+const CHAN = {ax:0, ay:1, az:2, gx:3, gy:4, gz:5};
+function chanBase(wristIdx, ch){ return (wristIdx*6 + ch) * IMU.samples; }
+
+function colMinMax(wristIdx, ch, i0, i1){
+  const d = IMU.data, base = chanBase(wristIdx, ch);
+  let lo = 32767, hi = -32768;
+  for (let i=i0;i<i1;i++){ const v=d[base+i]; if(v<lo)lo=v; if(v>hi)hi=v; }
+  return [lo*IMU.scales[ch], hi*IMU.scales[ch]];
+}
+function magMinMax(wristIdx, i0, i1){
+  const d=IMU.data, sc=IMU.scales[0];
+  const bx=chanBase(wristIdx,0), by=chanBase(wristIdx,1), bz=chanBase(wristIdx,2);
+  let lo=Infinity, hi=0;
+  for (let i=i0;i<i1;i++){
+    const x=d[bx+i]*sc, y=d[by+i]*sc, z=d[bz+i]*sc;
+    const m=Math.sqrt(x*x+y*y+z*z);
+    if(m<lo)lo=m; if(m>hi)hi=m;
+  }
+  return [lo===Infinity?0:lo, hi];
+}
+
+/* -------------------------------------------------------------- drawing */
+function fit(c){
+  const dpr=devicePixelRatio||1, w=c.clientWidth;
+  if (c.width!==w*dpr || c.height!==c.clientHeight*dpr){ c.width=w*dpr; c.height=c.clientHeight*dpr; }
+  const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0);
+  return [x,w,c.clientHeight];
+}
+const EXCOL = {pull_ups:'#8b6fd4', push_ups:'#d3564d', bodyweight_squats:'#c8871f',
+               bicep_curls:'#238b78', shoulder_press:'#3170b5'};
+
+function bands(x,w,h,a,b){
+  for (const s of SEGS){
+    if (s.end_s<=a || s.start_s>=b) continue;
+    const x0=(s.start_s-a)/(b-a)*w, x1=(s.end_s-a)/(b-a)*w;
+    if (s.label_type==='exercise'){
+      x.fillStyle=(EXCOL[s.exercise]||'#888')+'44';
+      x.fillRect(x0,0,Math.max(1,x1-x0),h);
+      x.fillStyle=EXCOL[s.exercise]||'#888'; x.fillRect(x0,0,Math.max(1,x1-x0),3);
+      if (s.reps_start_s!=null && s.reps_end_s!=null){
+        const r0=(s.reps_start_s-a)/(b-a)*w, r1=(s.reps_end_s-a)/(b-a)*w;
+        x.fillStyle='#3ecf8e33'; x.fillRect(r0,h-16,Math.max(1,r1-r0),13);
+        x.fillStyle='#3ecf8e'; x.fillRect(r0,h-16,Math.max(1,r1-r0),2);
+      }
+    } else if (s.null_activity && s.null_activity!=='rest'){
+      x.fillStyle='#ffffff10'; x.fillRect(x0,0,Math.max(1,x1-x0),h);
+    }
+  }
+  if (GHOST){
+    // A second pass laid over the first: where the two agree the ticks sit on
+    // the band edge, and every place they do not is a visible gap.
+    x.setLineDash([3,3]); x.lineWidth=1; x.strokeStyle='#ffffff99';
+    for (const s of GHOST.segments){
+      if (s.label_type!=='exercise') continue;
+      for (const t of [s.start_s, s.end_s]){
+        if (t<a || t>b) continue;
+        const px=(t-a)/(b-a)*w;
+        x.beginPath(); x.moveTo(px,0); x.lineTo(px,h); x.stroke();
+      }
+    }
+    x.setLineDash([]);
+  }
+}
+function marks(x,w,h,a,b){
+  const put=(t,col,lw=1.5)=>{ if(t==null||t<a||t>b) return;
+    const px=(t-a)/(b-a)*w; x.strokeStyle=col; x.lineWidth=lw;
+    x.beginPath(); x.moveTo(px,0); x.lineTo(px,h); x.stroke(); };
+  if (markIn!=null && markOut!=null){
+    const x0=(Math.max(a,markIn)-a)/(b-a)*w, x1=(Math.min(b,markOut)-a)/(b-a)*w;
+    x.fillStyle='#4a9eff22'; x.fillRect(x0,0,x1-x0,h);
+  }
+  put(markIn,'#4a9eff'); put(markOut,'#4a9eff');
+  for (const t of taps) put(t,'#3ecf8e88',1);
+  put(repEnd,'#3ecf8e');
+  put(sessionT(),'#ff5d5d');
+}
+function drawOv(){
+  if (!OV) return;
+  const [x,w,h]=fit($('#ov'));
+  x.fillStyle='#0f1115'; x.fillRect(0,0,w,h);
+  bands(x,w,h,0,S.span_s);
+  const names=Object.keys(OV.wrists), lane=h/names.length;
+  names.forEach((nm,i)=>{
+    const {lo,hi}=OV.wrists[nm], n=lo.length, base=i*lane;
+    x.strokeStyle=i?'#5a7fa8':'#7f9ec4'; x.lineWidth=1; x.beginPath();
+    for (let k=0;k<n;k++){
+      const px=k/n*w, sc=lane/40;
+      x.moveTo(px, base+lane-Math.min(lane,lo[k]*sc));
+      x.lineTo(px, base+lane-Math.min(lane,hi[k]*sc));
+    }
+    x.stroke();
+    x.fillStyle='#98a2b3'; x.font='10px ui-monospace,Menlo,monospace';
+    x.fillText(nm,5,base+11);
+  });
+  const a=view.a/S.span_s*w, b=view.b/S.span_s*w;
+  x.strokeStyle='#e8ecf2aa'; x.lineWidth=1; x.strokeRect(a,0.5,Math.max(2,b-a),h-1);
+  marks(x,w,h,0,S.span_s);
+}
+function drawDet(){
+  if (!IMU) return;
+  const [x,w,h]=fit($('#det')); const {a,b}=view;
+  x.fillStyle='#0f1115'; x.fillRect(0,0,w,h);
+  bands(x,w,h,a,b);
+  const lane=h/IMU.order.length;
+  const A_MAX=32, G_MAX=10, M_MAX=40;
+  const ACOL=['#d2617a','#3ecf8e','#5b8fd6'], GCOL=['#e0a54a','#b0a4d8','#5fc6c9'];
+  const R=IMU.rate_hz, W=Math.max(1,Math.round(w));
+
+  IMU.order.forEach((nm,wi)=>{
+    const base=wi*lane, sub=(lane-14)/3;
+    const yA=base+12, yG=yA+sub, yM=yG+sub;
+    x.strokeStyle='#1d2430'; x.lineWidth=1;
+    [yA,yG].forEach(y0=>{ x.beginPath(); x.moveTo(0,y0+sub/2); x.lineTo(w,y0+sub/2); x.stroke(); });
+    const panel=(y0,label)=>{
+      x.strokeStyle='#232936'; x.lineWidth=1;
+      x.beginPath(); x.moveTo(0,y0+sub); x.lineTo(w,y0+sub); x.stroke();
+      x.fillStyle='#6b7688'; x.font='9px ui-monospace,Menlo,monospace'; x.fillText(label,5,y0+10);
+    };
+    panel(yA,`accel m/s²  ±${A_MAX}`); panel(yG,`gyro rad/s  ±${G_MAX}`); panel(yM,`|accel|  0–${M_MAX}`);
+
+    const draw=(y0,getter,col,scale,centre)=>{
+      x.strokeStyle=col; x.lineWidth=.8; x.beginPath();
+      let started=false;
+      for (let px=0;px<W;px++){
+        const t0=a+(px/W)*(b-a), t1=a+((px+1)/W)*(b-a);
+        const i0=Math.max(0,Math.floor(t0*R)), i1=Math.min(IMU.samples,Math.max(i0+1,Math.ceil(t1*R)));
+        if (i0>=IMU.samples) break;
+        const [lo,hi]=getter(wi,i0,i1);
+        const yv=v => centre ? y0+sub/2 - Math.max(-1,Math.min(1,v/scale))*(sub/2)
+                             : y0+sub   - Math.max(0,Math.min(1,v/scale))*sub;
+        if (!started){ x.moveTo(px, yv(hi)); started=true; }
+        x.lineTo(px, yv(hi)); x.lineTo(px, yv(lo));
+      }
+      x.stroke();
+    };
+    for (let c=0;c<3;c++) draw(yA,(wi,i0,i1)=>colMinMax(wi,c,i0,i1),ACOL[c],A_MAX,true);
+    for (let c=3;c<6;c++) draw(yG,(wi,i0,i1)=>colMinMax(wi,c,i0,i1),GCOL[c-3],G_MAX,true);
+    draw(yM,magMinMax,'#e8ecf2',M_MAX,false);
+
+    x.fillStyle='#98a2b3'; x.font='10px ui-monospace,Menlo,monospace';
+    x.fillText(`${nm}  ${IMU.wrists[nm].samples.toLocaleString()} samples  ·  ${R} Hz render copy`,5,base+9);
+  });
+
+  x.font='10px ui-monospace,Menlo,monospace';
+  const span=b-a, step=span>600?60:span>300?30:span>120?20:span>30?5:1;
+  for (let t=Math.ceil(a/step)*step; t<b; t+=step){
+    const p=(t-a)/(b-a)*w;
+    x.fillStyle='#ffffff0e'; x.fillRect(p,0,1,h);
+    x.fillStyle='#6b7688'; x.fillText(clock(t),p+3,h-3);
+  }
+  marks(x,w,h,a,b);
+}
+addEventListener('resize', ()=>{ if(S){ drawOv(); drawDet(); } });
+
+/* ---------------------------------------------------------- interaction */
+function seek(t){
+  t = Math.max(0, Math.min(S.span_s, t));
+  cursor = t;
+  if (hasVideo()) vid.currentTime = Math.max(0, videoT(t));
+  if (follow) return;
+  if (t<view.a || t>view.b){
+    const half=(view.b-view.a)/2;
+    view={a:Math.max(0,t-half), b:Math.min(S.span_s,t+half)}; setWinLabel();
+  }
+}
+function canvasSeek(c, spanFn){
+  let down=null;
+  c.addEventListener('mousedown', e=>{ down=e.offsetX; });
+  c.addEventListener('mouseup', e=>{
+    if (down==null) return;
+    const [a,b]=spanFn(), w=c.clientWidth;
+    const t0=a+(down/w)*(b-a), t1=a+(e.offsetX/w)*(b-a);
+    if (Math.abs(e.offsetX-down)<4) seek(t0);
+    else {
+      follow=false; $('#cbFollow').checked=false;
+      view={a:Math.max(0,Math.min(t0,t1)), b:Math.min(S.span_s,Math.max(t0,t1))};
+      setWinLabel(); drawDet();
+    }
+    down=null;
+  });
+}
+canvasSeek($('#ov'),  ()=>[0,S.span_s]);
+canvasSeek($('#det'), ()=>[view.a,view.b]);
+
+function setMarkPill(){
+  const p=$('#markPill');
+  if (markIn!=null && markOut!=null){ p.className='pill on'; p.textContent=`${fmt(markIn,2)} → ${fmt(markOut,2)}`; }
+  else if (markIn!=null){ p.className='pill on'; p.textContent=`in ${fmt(markIn,2)}`; }
+  else { p.className='pill'; p.textContent='no mark'; }
+  $('#markInfo').textContent = `in ${fmt(markIn)}   out ${fmt(markOut)}`;
+  $('#repCount').textContent = taps.length;
+  const end = repEnd ?? (taps.length?taps.at(-1):null);
+  $('#repSpan').textContent = taps.length
+    ? `${fmt(taps[0],2)} → ${fmt(end,2)}${repEnd==null?'  (press E at end of last rep)':''}` : '—';
+}
+const guard = ()=>{ if (readOnly()){ alert('This is a delivered, read-only label set.\n\nSwitch to "My labels", or use "Copy into my labels" to start from it.'); return true; } return false; };
+const doIn  = ()=>{ if(guard())return; markIn=sessionT(); if(markOut!=null&&markOut<markIn) markOut=null; setMarkPill(); };
+const doOut = ()=>{ if(guard())return; vid.pause(); markOut=sessionT();
+  if (markIn==null){ setMarkPill(); return; } openEditor(null); };
+const doTap = ()=>{ if(guard())return; taps.push(sessionT()); setMarkPill(); };
+const doEnd = ()=>{ if(guard())return; repEnd=sessionT(); setMarkPill(); };
+const doClear=()=>{ markIn=markOut=repEnd=null; taps=[]; setMarkPill(); };
+$('#btnIn').onclick=doIn; $('#btnOut').onclick=doOut;
+$('#btnTap').onclick=doTap; $('#btnEnd').onclick=doEnd; $('#btnClear').onclick=doClear;
+
+const FRAME=1/59.94, JUMP=10;
+function keyName(e){
+  const k=e.key||''; if (k) return k;
+  const c=e.code||'';
+  if (/^Arrow/.test(c)) return c;
+  if (c==='Space') return ' ';
+  if (/^Key[A-Z]$/.test(c)) return c.slice(3).toLowerCase();
+  if (c==='Comma') return ','; if (c==='Period') return '.';
+  if (c==='Escape') return 'Escape';
+  return '';
+}
+const nudge = d => { if (hasVideo()){ vid.currentTime = Math.max(0, Math.min(vid.duration||1e9, vid.currentTime+d)); } else seek(cursor+d); };
+addEventListener('keydown', e=>{
+  if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName) || e.target.isContentEditable){
+    if (keyName(e)==='Escape') closeModal();
+    return;
+  }
+  if (!S) return;
+  if (e.metaKey||e.ctrlKey||e.altKey) return;
+  const key=keyName(e), k=key.toLowerCase();
+  const take = ()=>{ e.preventDefault(); e.stopPropagation(); };
+  if (k===' '){ take(); if(hasVideo()) vid.paused?vid.play():vid.pause(); }
+  else if (k==='i'){ take(); doIn(); }
+  else if (k==='o'){ take(); doOut(); }
+  else if (k==='r'){ take(); doTap(); }
+  else if (k==='e'){ take(); doEnd(); }
+  else if (key==='Escape'){ take(); closeModal(); doClear(); }
+  else if (key==='ArrowLeft'){ take(); nudge(-(e.shiftKey?1:JUMP)); }
+  else if (key==='ArrowRight'){ take(); nudge(e.shiftKey?1:JUMP); }
+  else if (key===','){ take(); vid.pause(); nudge(-FRAME); }
+  else if (key==='.'){ take(); vid.pause(); nudge(FRAME); }
+  else if (k==='j'){ take(); stepRate(-1); if(hasVideo()) vid.play(); }
+  else if (k==='k'){ take(); vid.pause(); vid.playbackRate=1; showRate(); }
+  else if (k==='l'){ take(); stepRate(+1); if(hasVideo()) vid.play(); }
+}, true);
+
+/* ------------------------------------------------- annotated-moment frames */
+const THUMB_W=320, THUMB_H=180;
+const shot = document.createElement('video');
+shot.muted=true; shot.playsInline=true; shot.preload='metadata';
+const shotCv = Object.assign(document.createElement('canvas'), {width:THUMB_W, height:THUMB_H});
+const frames = new Map();
+let shotQueue = Promise.resolve();
+
+function shotSrc(src){ frames.clear(); shot.src=src; renderStrip(); }
+function shotReady(){
+  if (shot.readyState>=2) return Promise.resolve(true);
+  return new Promise(res=>{
+    const ok=()=>{clean();res(true);}, no=()=>{clean();res(false);};
+    const clean=()=>{ clearTimeout(tm);
+      shot.removeEventListener('loadeddata',ok); shot.removeEventListener('error',no); };
+    const tm=setTimeout(no,15000);
+    shot.addEventListener('loadeddata',ok); shot.addEventListener('error',no);
+  });
+}
+function grabFrame(tSession){
+  if (!hasVideo()) return Promise.resolve(null);
+  const vt=Math.max(0, videoT(tSession)), key=vt.toFixed(2);
+  if (frames.has(key)) return Promise.resolve(frames.get(key));
+  shotQueue = shotQueue.then(async ()=>{
+    if (frames.has(key)) return frames.get(key);
+    if (!await shotReady()) return null;
+    return new Promise(res=>{
+      let settled=false;
+      const finish=url=>{ if(settled)return; settled=true;
+        clearTimeout(tm); shot.removeEventListener('seeked',onSeek); res(url); };
+      const onSeek=()=>{
+        try {
+          shotCv.getContext('2d').drawImage(shot,0,0,THUMB_W,THUMB_H);
+          const url=shotCv.toDataURL('image/jpeg',0.7);
+          if (frames.size>300) frames.clear();
+          frames.set(key,url); finish(url);
+        } catch(err){ finish(null); }
+      };
+      shot.addEventListener('seeked',onSeek);
+      const tm=setTimeout(()=>finish(null),6000);
+      try { shot.currentTime=vt; } catch(err){ finish(null); }
+    });
+  });
+  return shotQueue;
+}
+
+/* ------------------------------------------------------------------ strip */
+let stripObs=null;
+function renderStrip(){
+  if (!S) return;
+  const ex = SEGS.filter(s=>s.label_type==='exercise').sort((a,b)=>a.start_s-b.start_s);
+  $('#stripCount').textContent = ex.length ? `· ${ex.length}` : '';
+  $('#stripHint').textContent = !ex.length
+    ? 'Nothing annotated yet. Mark an exercise interval and it appears here with the frame it starts on.'
+    : hasVideo()
+      ? 'Click a card to jump to the first rep · in / rep 1 / rep n / out seek to that exact boundary'
+      : 'Load the video to see a frame from each moment. The jump buttons already work.';
+  $('#strip').innerHTML = ex.map(s=>{
+    const nm=S.exercises[s.exercise]?.label ?? s.exercise;
+    const col=EXCOL[s.exercise]||'#888';
+    const at=s.reps_start_s ?? s.start_s;
+    const btn=(t,lab,ti)=> t==null?'' : `<button data-go="${t}" title="${ti} · ${fmt(t,2)}s">${lab}</button>`;
+    return `<div class="shot" data-id="${s.segment_id}" data-at="${at}"
+                 data-a="${s.start_s}" data-b="${s.end_s}">
+      <div class="ph" data-slot>${clock(at)}</div>
+      <div class="cap"><span class="swatch" style="background:${col}"></span><b>${nm}</b> · set ${s.set_index??'—'}<br>
+        <span class="mono hint">${clock(s.start_s)}–${clock(s.end_s)} · ${fmt(s.end_s-s.start_s,1)}s · ${s.rep_count??'—'} reps${s.rpe!=null?` · RPE ${s.rpe}`:''}</span></div>
+      <div class="jump">
+        ${btn(s.start_s,'in','approach')}${btn(s.reps_start_s,'rep 1','first rep')}
+        ${btn(s.reps_end_s,'rep n','last rep')}${btn(s.end_s,'out','rack')}
+      </div></div>`;
+  }).join('');
+  $('#strip').querySelectorAll('.shot').forEach(el=>{
+    el.onclick = e => {
+      const go = e.target.dataset ? e.target.dataset.go : undefined;
+      seek(Number(go!==undefined ? go : el.dataset.at));
+    };
+  });
+  fillStrip();
+}
+function fillStrip(){
+  stripObs?.disconnect(); stripObs=null;
+  if (!$('#cbShots').checked || !hasVideo()) return;
+  stripObs = new IntersectionObserver(ens=>{
+    for (const en of ens){
+      if (!en.isIntersecting) continue;
+      const el=en.target; stripObs.unobserve(el);
+      grabFrame(Number(el.dataset.at)).then(url=>{
+        const slot=el.querySelector('[data-slot]');
+        if (url && slot) slot.outerHTML = `<img class="im" data-slot src="${url}" alt="">`;
+      });
+    }
+  }, {root:$('#strip'), rootMargin:'300px'});
+  $('#strip').querySelectorAll('.shot').forEach(el=>stripObs.observe(el));
+}
+$('#cbShots').onchange = ()=>{
+  if (!$('#cbShots').checked) $('#hovShot').style.display='none';
+  renderStrip();
+};
+// Highlight, and scroll to, whichever card the playhead is inside.
+let curShotId=null;
+function markCurrentShot(t){
+  const cards=$('#strip').children;
+  let hit=null;
+  for (const el of cards){
+    const inside = t>=Number(el.dataset.a) && t<Number(el.dataset.b);
+    el.classList.toggle('cur', inside);
+    if (inside) hit=el;
+  }
+  const id = hit?.dataset.id ?? null;
+  if (id!==curShotId){
+    curShotId=id;
+    // Scroll the strip, never the page: scrollIntoView() would yank the whole
+    // document down to the strip every time a set starts, pulling the video
+    // the operator is watching off screen.
+    if (hit){
+      const box=$('#strip');
+      const l=hit.offsetLeft-box.offsetLeft, r=l+hit.offsetWidth;
+      if (l<box.scrollLeft || r>box.scrollLeft+box.clientWidth)
+        box.scrollTo({left: l - box.clientWidth/2 + hit.offsetWidth/2, behavior:'smooth'});
+    }
+  }
+}
+
+/* ------------------------------------------------- hover frame on a canvas */
+function canvasHover(c, spanFn){
+  let timer=null, last=null;
+  c.addEventListener('mousemove', e=>{
+    if (!hasVideo() || !$('#cbShots').checked) return;
+    const [a,b]=spanFn(), w=c.clientWidth;
+    const t=a+(e.offsetX/w)*(b-a);
+    const box=$('#hovShot');
+    box.style.display='';
+    box.style.left = Math.max(6, Math.min(innerWidth-216, e.clientX-104))+'px';
+    box.style.top  = Math.max(6, e.clientY-152)+'px';
+    box.querySelector('.t').textContent = `${clock(t)} · ${fmt(t,2)}s`;
+    clearTimeout(timer);
+    timer = setTimeout(()=>{
+      const key=t.toFixed(1);
+      if (key===last) return;
+      last=key;
+      grabFrame(t).then(url=>{
+        if (url && box.style.display!=='none' && last===key) box.querySelector('img').src=url;
+      });
+    }, 170);
+  });
+  c.addEventListener('mouseleave', ()=>{
+    clearTimeout(timer); last=null;
+    const box=$('#hovShot'); box.style.display='none';
+    box.querySelector('img').removeAttribute('src');
+  });
+}
+canvasHover($('#ov'),  ()=>[0,S.span_s]);
+canvasHover($('#det'), ()=>[view.a,view.b]);
+
+/* ------------------------------------------------------ segments & editor */
+function nullSeg(a,b,kind='rest'){
+  return {segment_id:uuid(), label_type:'null', null_activity:kind, start_s:a, end_s:b,
+          exercise:null, set_index:null, movement_pattern:null, variation:null,
+          assistance:null, laterality:null, rpe:null, load_note:null, notes:null,
+          reps_start_s:null, reps_end_s:null, rep_count:null};
+}
+function mergeNulls(segs){
+  const out=[];
+  for (const s of segs){
+    const p=out[out.length-1];
+    if (p && p.label_type==='null' && s.label_type==='null'
+        && p.null_activity===s.null_activity && Math.abs(p.end_s-s.start_s)<1e-6){
+      out[out.length-1] = {...p, end_s:s.end_s};
+    } else out.push(s);
+  }
+  return out;
+}
+function splice(seg){
+  const lo=seg.start_s, hi=seg.end_s, kept=[];
+  for (const s of SEGS){
+    if (s.end_s<=lo+1e-9 || s.start_s>=hi-1e-9){ kept.push(s); continue; }
+    if (s.start_s<lo) kept.push({...s, segment_id:uuid(), end_s:lo});
+    if (s.end_s>hi)   kept.push({...s, segment_id:uuid(), start_s:hi});
+  }
+  kept.push(seg);
+  kept.sort((a,b)=>a.start_s-b.start_s);
+  SEGS = mergeNulls(kept);
+  saveMine();
+}
+function validate(seg){
+  const err=[];
+  const a=Number(seg.start_s), b=Number(seg.end_s);
+  if (!Number.isFinite(a)||!Number.isFinite(b)) return ['start and end are required numbers.'];
+  if (b<=a) err.push('End must be after start (§IV: intervals are [start, end)).');
+  if (seg.label_type==='null'){
+    if (!S.null_activities.includes(seg.null_activity))
+      err.push('null_activity must be one of '+S.null_activities.join(', ')+' (Appendix D).');
+    return err;
+  }
+  const meta=S.exercises[seg.exercise];
+  if (!meta) return ['exercise must be one of '+Object.keys(S.exercises).join(', ')+' (Appendix C).'];
+  const allPatterns=S.movement_patterns.flatMap(g=>g.options);
+  if (!allPatterns.includes(seg.movement_pattern)) err.push('movement_pattern must come from Appendix C.');
+  if (!S.laterality.includes(seg.laterality)) err.push('laterality must be one of '+S.laterality.join(', ')+'.');
+  if (!meta.assistance_values.includes(seg.assistance))
+    err.push(`assistance for ${seg.exercise} must be one of ${meta.assistance_values.join(', ')} (Appendix D).`);
+  if (!Number.isInteger(seg.set_index) || seg.set_index<1 || seg.set_index>5)
+    err.push("set_index must be 1-5 (Appendix C: 'Set index: 1-5').");
+  const rs=seg.reps_start_s, re=seg.reps_end_s, rc=seg.rep_count;
+  if (rs==null||re==null||rc==null)
+    err.push('Reps interval and rep count are required for every Exercise Interval (Appendix C/D).');
+  else {
+    if (re<=rs) err.push('Reps end must be after reps start.');
+    if (rs<a-1e-6 || re>b+1e-6) err.push('Reps interval must sit inside the Exercise Interval (Appendix D).');
+    if (!Number.isInteger(rc)||rc<0) err.push('rep_count must be a non-negative whole number.');
+  }
+  for (const o of SEGS){
+    if (o.segment_id!==seg.segment_id && o.label_type==='exercise'
+        && o.exercise===seg.exercise && o.set_index===seg.set_index){
+      err.push(`set ${seg.set_index} of ${seg.exercise} is already labelled at ${fmt(o.start_s)}–${fmt(o.end_s)}s. Each set index may be used once per exercise (set_id must be unique).`);
+      break;
+    }
+  }
+  return err;
+}
+
+const esc = v => String(v).replace(/"/g,'&quot;');
+const optList = (vals,sel)=>(vals||[]).map(v=>`<option value="${esc(v)}" ${v===sel?'selected':''}>${v}</option>`).join('');
+const mpOpts = sel => S.movement_patterns
+  .map(g=>`<optgroup label="${g.group}">${optList(g.options,sel)}</optgroup>`).join('');
+function closeModal(){ $('#modalHost').innerHTML=''; }
+
+function openEditor(seg){
+  if (guard()) return;
+  const isNew=!seg;
+  const nextSet = ex => {
+    const used=new Set(SEGS.filter(x=>x.label_type==='exercise'&&x.exercise===ex).map(x=>x.set_index));
+    for (let i=1;i<=5;i++) if(!used.has(i)) return i;
+    return 1;
+  };
+  const s = seg ? {...seg} : {
+    segment_id:null, label_type:'exercise', exercise:'pull_ups', set_index:nextSet('pull_ups'),
+    start_s:markIn, end_s:markOut, null_activity:null, movement_pattern:null,
+    variation:null, assistance:null, laterality:'bilateral', rpe:null, load_note:null,
+    notes:null, reps_start_s:(taps.length?taps[0]:null),
+    reps_end_s:(repEnd ?? (taps.length?taps.at(-1):null)),
+    rep_count:(taps.length||null),
+  };
+  const exOpts = Object.entries(S.exercises)
+    .map(([k,v])=>`<option value="${k}" ${k===s.exercise?'selected':''}>${v.label}</option>`).join('');
+  const nullOpts = optList(S.null_activities, s.null_activity ?? 'rest');
+
+  $('#modalHost').innerHTML = `
+   <div class="modal" id="mBack"><div class="card">
+    <div class="kicker">${isNew?'New segment':'Edit segment'}</div>
+    <div class="grid2">
+      <label class="f"><span>Segment label</span>
+        <select id="fType">
+          <option value="exercise" ${s.label_type==='exercise'?'selected':''}>Exercise interval</option>
+          <option value="null" ${s.label_type==='null'?'selected':''}>Null interval</option>
+        </select></label>
+      <label class="f" id="wrapNull" style="display:none"><span>Null activity type</span>
+        <select id="fNull">${nullOpts}</select></label>
+      <label class="f" id="wrapEx"><span>Exercise</span>
+        <select id="fEx">${exOpts}</select></label>
+    </div>
+    <div class="grid3">
+      <label class="f"><span>Start from session (s)</span>
+        <input class="mono" id="fStart" type="number" step="0.001" value="${fmt(s.start_s)}"></label>
+      <label class="f"><span>End from session (s)</span>
+        <input class="mono" id="fEnd" type="number" step="0.001" value="${fmt(s.end_s)}"></label>
+      <label class="f"><span>Set index</span>
+        <input class="mono" id="fSet" type="number" min="1" max="5" value="${s.set_index??''}"></label>
+    </div>
+    <div class="exonly">
+      <div class="kicker" style="margin-top:6px">Reps interval &middot; required, must sit inside the exercise span</div>
+      <div class="grid3">
+        <label class="f"><span>Reps start (s)</span>
+          <input class="mono" id="fRepStart" type="number" step="0.001" value="${s.reps_start_s??''}"></label>
+        <label class="f"><span>Reps end (s)</span>
+          <input class="mono" id="fRepEnd" type="number" step="0.001" value="${s.reps_end_s??''}"></label>
+        <label class="f"><span>Rep count <span id="recHint" class="hint"></span></span>
+          <input class="mono" id="fReps" type="number" min="0" max="1000" value="${s.rep_count??''}"></label>
+      </div>
+      <div class="grid3">
+        <label class="f"><span>Movement pattern</span>
+          <select id="fMove">${mpOpts(s.movement_pattern)}</select></label>
+        <label class="f"><span>Variation <span class="hint">examples, or type your own</span></span>
+          <input id="fVar" list="varList" value="${esc(s.variation??'')}">
+          <datalist id="varList"></datalist></label>
+        <label class="f"><span>Laterality</span>
+          <select id="fLat">${optList(S.laterality, s.laterality)}</select></label>
+      </div>
+      <div class="grid3">
+        <label class="f"><span>Assistance</span><select id="fAssist"></select></label>
+        <label class="f"><span>RPE</span><input class="mono" id="fRpe" type="number" min="0" max="10" step="0.5" value="${s.rpe??''}"></label>
+        <label class="f"><span>Load note</span><input id="fLoad" value="${esc(s.load_note??'')}"></label>
+      </div>
+    </div>
+    <label class="f"><span>Notes</span><textarea id="fNotes" rows="2">${s.notes??''}</textarea></label>
+    <div id="fErr" class="hint" style="color:#ff8a80;white-space:pre-wrap"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      ${seg && seg.label_type!=='null' ? '<button id="bDel" class="danger">Delete → rest</button>':''}
+      <span style="flex:1"></span>
+      <button id="bCancel">Cancel</button>
+      <button id="bSave" class="primary">Save</button>
+    </div>
+   </div></div>`;
+
+  const syncType=()=>{
+    const ex = $('#fType').value==='exercise';
+    $('#wrapEx').style.display   = ex?'':'none';
+    $('#wrapNull').style.display = ex?'none':'';
+    document.querySelectorAll('.exonly').forEach(e=>e.style.display = ex?'':'none');
+  };
+  const syncEx=()=>{
+    const meta=S.exercises[$('#fEx').value];
+    if (!meta) return;
+    $('#varList').innerHTML = (meta.variations||[]).map(v=>`<option value="${esc(v)}">`).join('');
+    $('#fAssist').innerHTML = optList(meta.assistance_values, s.assistance ?? meta.assistance);
+    if (!$('#fMove').value || isNew) $('#fMove').value = meta.movement_pattern;
+    const rec = S.recorded?.[`${$('#fEx').value}:${Number($('#fSet').value)}`];
+    $('#recHint').textContent = rec?.reps_counted!=null ? `· operator logged ${rec.reps_counted}` : '';
+  };
+  $('#fType').onchange=syncType; $('#fEx').onchange=syncEx; $('#fSet').oninput=syncEx;
+  syncType(); syncEx();
+
+  $('#mBack').onclick = e => { if (e.target.id==='mBack') closeModal(); };
+  $('#bCancel').onclick = closeModal;
+  if ($('#bDel')) $('#bDel').onclick = ()=>{
+    if (!confirm('Replace this segment with rest?')) return;
+    splice(nullSeg(seg.start_s, seg.end_s));
+    closeModal(); doClear(); refresh();
+  };
+  const num = sel => { const v=$(sel).value; return v===''?null:Number(v); };
+  $('#bSave').onclick = ()=>{
+    const t=$('#fType').value;
+    const out = {
+      segment_id: s.segment_id || uuid(),
+      label_type: t,
+      exercise:      t==='exercise' ? $('#fEx').value : null,
+      null_activity: t==='null'     ? $('#fNull').value : null,
+      set_index: t==='exercise' ? num('#fSet') : null,
+      start_s: num('#fStart'), end_s: num('#fEnd'),
+      movement_pattern: t==='exercise'?$('#fMove').value:null,
+      variation: t==='exercise'?($('#fVar').value||null):null,
+      assistance: t==='exercise'?$('#fAssist').value:null,
+      laterality: t==='exercise'?$('#fLat').value:null,
+      rpe: t==='exercise'?num('#fRpe'):null,
+      load_note: t==='exercise'?($('#fLoad').value||null):null,
+      reps_start_s: t==='exercise'?num('#fRepStart'):null,
+      reps_end_s:   t==='exercise'?num('#fRepEnd'):null,
+      rep_count:    t==='exercise'?num('#fReps'):null,
+      notes: $('#fNotes').value||null,
+    };
+    const bad = validate(out);
+    if (bad.length){ $('#fErr').textContent = bad.join('\n'); return; }
+    splice(out); closeModal(); doClear(); refresh();
+  };
+}
+
+function renderSegs(){
+  const ex=SEGS.filter(s=>s.label_type==='exercise').length;
+  $('#segCount').textContent=`· ${SEGS.length} rows, ${ex} exercise`;
+  $('#segBody').innerHTML = SEGS.map(s=>{
+    const col=s.label_type==='exercise'?(EXCOL[s.exercise]||'#888'):'#5c6473';
+    const name=s.label_type==='exercise'?(S.exercises[s.exercise]?.label ?? s.exercise):s.null_activity;
+    return `<tr class="seg" data-id="${s.segment_id}">
+      <td><span class="swatch" style="background:${col}"></span>${s.label_type}</td>
+      <td>${name??''}</td><td class="mono">${s.set_index??''}</td>
+      <td class="mono">${fmt(s.start_s)}</td><td class="mono">${fmt(s.end_s)}</td>
+      <td class="mono">${fmt(s.end_s-s.start_s,1)}</td>
+      <td class="mono">${s.rep_count??''}</td>
+      <td class="mono">${s.rpe??''}</td>
+      <td><button style="padding:2px 8px" data-go="${s.start_s}">go</button></td></tr>`;
+  }).join('');
+  $('#segBody').querySelectorAll('tr.seg').forEach(tr=>{
+    tr.onclick = e => {
+      if (e.target.dataset.go!==undefined){ seek(Number(e.target.dataset.go)); return; }
+      openEditor(SEGS.find(x=>x.segment_id===tr.dataset.id));
+    };
+  });
+}
+
+/* ----------------------------------------------------------------- export
+   The same working-draft shape server.py reads, so a pass done here can be fed
+   straight back into the local tool, which is what writes Fort's parquet. */
+$('#btnExport').onclick = ()=>{
+  const who = (curSet==='mine')
+    ? (prompt('Labeler ID for this export:', localStorage.getItem(lsKey('who')) || '') || '').trim()
+    : SETS[Number(curSet)].labeler_id;
+  if (!who) return;
+  if (curSet==='mine') localStorage.setItem(lsKey('who'), who);
+  const body = {
+    schema: 'fort.exercise_study_data.working_draft.v2',
+    exported_by: 'fort-labeler-web',
+    exported_at: new Date().toISOString(),
+    study_key: S.study_key, study_version: S.study_version,
+    participant_id: S.participant_id, session_id: S.session_id, session_ref: S.session_ref,
+    labeler_id: who,
+    annotation_set_id: curSet==='mine'
+      ? (localStorage.getItem(lsKey('asid')) || (()=>{ const v=uuid(); localStorage.setItem(lsKey('asid'),v); return v; })())
+      : SETS[Number(curSet)].annotation_set_id,
+    lsl_base: S.lsl_base, video_offset_s: S.video_offset_s,
+    labelable_interval: {start_s:0, end_s:S.span_s},
+    segments: SEGS,
+  };
+  const blob = new Blob([JSON.stringify(body, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${S.session_id}__${who.replace(/[^\w.-]+/g,'_')}__draft.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+};
+
+boot().catch(err=>{
+  $('#boot').innerHTML = `<b style="color:#ff8a80">Could not load session data.</b><br>
+    <span class="hint">${String(err)}</span><br><br>
+    <span class="hint">Serve this folder over http (GitHub Pages, or <span class="mono">python3 -m http.server</span>) —
+    opening index.html straight off the disk blocks the data files.</span>`;
+});
+</script>
