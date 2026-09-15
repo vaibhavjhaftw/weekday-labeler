@@ -1,86 +1,134 @@
-# Fort Session Labeler — web
+# Weekday Labeler
 
-The labeler as a plain web page. Nothing runs on a server: the page loads the
-session's sensor data and the delivered label sets as static files, and the
-**video is opened from the viewer's own disk**.
+Mark where each set starts and stops in a gym session video. It runs as a web
+page, so a new labeller needs a link and nothing else installed.
 
-That split is deliberate.
+The video is **not** part of the page. It is opened from the labeller's own
+disk, the way a desktop player opens a file — never uploaded, never streamed.
+That is what keeps seeking frame-accurate, and it is what keeps participant
+footage off third-party servers.
 
-- **The page can be public.** Timeline, IMU traces, every labelled interval,
-  both labeller passes — all of it is a few hundred kB of numbers.
-- **The recording never leaves the machine.** It is opened with
-  `URL.createObjectURL`, the same way a desktop player opens a file. No upload,
-  no copy, nothing cached by a third party. Fort's instructions are explicit:
-  *"Do not upload captures or labels to an unapproved cloud drive, messaging
-  service, or personal account."* This design does not touch that line.
-- **Seeking stays frame-accurate.** A local file seeks in single frames, which
-  a YouTube or Vimeo embed cannot do — their players snap to keyframes, roughly
-  half a second out. Boundaries here are graded to ±150 ms, so a streamed
-  player would put the target out of reach.
+---
 
-Someone without the MP4 still gets a working page — traces, intervals, rep
-counts, RPE. Only the frame previews need the file.
+## For whoever is labelling
 
-## Hosting it
+1. Open the link. Type your name once.
+2. **Choose video file…** and pick the session video you were given.
+3. For each set, mark four moments with <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>:
 
-Any static host. For GitHub Pages:
+   | | |
+   |---|---|
+   | **1 — Exercise starts** | they walk up / pick up the weight |
+   | **2 — First rep** | the first rep begins |
+   | **3 — Last rep** | the last rep finishes |
+   | **4 — Exercise ends** | they rack it / walk away |
 
-```bash
-cd fort-labeler-web
-git init && git add -A && git commit -m "Fort session labeler (web)"
-gh repo create <org>/fort-labeler-web --private --source=. --push
-gh api -X POST repos/<org>/fort-labeler-web/pages -f 'source[branch]=main' -f 'source[path]=/'
-```
+4. After the fourth mark a **review card** pops up with a picture of all four
+   moments. Click any picture to jump back and look again. If it looks right,
+   **Save & next** — it moves to the next set on its own.
+5. When all 25 are done, open **Check**, then **Export**.
 
-Private repo → Pages is visible to repo collaborators only, which is the right
-default for study data. A public repo would publish the label timings and RPEs
-to anyone; that is a call for Fort to make, not us.
-
-Nothing to build. `index.html` plus `data/` is the whole site.
-
-## Using it
-
-1. Open the URL.
-2. **Load video…** and pick `Video_Guru_31_08_2026.MP4` from your own disk.
-   The page checks the file size against the labelled capture and says so if it
-   does not match. Chrome and Edge remember the file across reloads; Safari and
-   Firefox ask again each session.
-3. Pick a label set in the header. The two delivered passes are **read-only**.
-   *My labels* is yours, stored in this browser only.
-4. **Copy into my labels** starts a new pass from an existing one.
-5. **Export JSON** downloads a `working_draft.v2` file — the shape `server.py`
-   in `fort-annotator-demo` reads, which is what writes Fort's parquet.
+You never type an exercise name, rep count or RPE. Those come from the trainer's
+set log and are filled in already. Your job is only *when*.
 
 ### Keys
 
-`space` play · `←` `→` 10 s · `⇧`+arrow 1 s · `,` `.` one frame ·
-`J` `K` `L` speed · `I` mark in · `O` mark out · `R` tap rep · `E` end reps ·
-`Esc` clear.
+| | |
+|---|---|
+| <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> | mark the four moments |
+| <kbd>space</kbd> | play / pause |
+| <kbd>←</kbd> <kbd>→</kbd> | 10 seconds · with <kbd>⇧</kbd>, 1 second |
+| <kbd>,</kbd> <kbd>.</kbd> | one frame — use these to land a boundary exactly |
+| <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> | slower · normal · faster |
+| <kbd>⏎</kbd> | review the set · <kbd>⌫</kbd> undo the last mark |
 
-### Annotated moments
+Pressing a step you already marked re-takes it at the current frame. That is how
+you fix a mistake; there is no separate edit mode.
 
-Every exercise interval gets a card with a real frame from the moment its first
-rep starts. Click the card to jump there; `in` / `rep 1` / `rep n` / `out` seek
-to that exact boundary. Hovering either timeline shows the frame under the
-cursor. The card for the interval you are inside highlights as the video plays.
+Work is saved in your browser as you go, so closing the tab loses nothing. It is
+saved **per browser** — your marks are not visible to anyone else until you
+Export and send the file.
 
-## The data
+### The three tabs
+
+- **Label** — the video, the current set, the four marks.
+- **Check** — every set as a row of four pictures. Click any picture to see that
+  moment. Sets with a problem say what is wrong: reps falling outside the
+  exercise, two sets overlapping, a set only a few seconds long.
+- **Signals** — the wrist sensor traces, for whoever is checking the work. A
+  real set is obvious in the accelerometer; this is how you confirm a boundary
+  when the video is ambiguous. It can also draw a delivered pass over yours to
+  compare.
+
+---
+
+## Running it
+
+**Hosted** — any static host, nothing to build. For GitHub Pages:
+
+```bash
+cd fort-labeler-web
+gh repo create <org>/weekday-labeler --private --source=. --push
+gh api -X POST repos/<org>/weekday-labeler/pages -f 'source[branch]=main' -f 'source[path]=/'
+```
+
+A private repo means Pages is visible to repo collaborators only, which is the
+right default for study data. A public repo would put one participant's set
+timings and RPEs on the open web — Fort's call, not ours.
+
+**On one Mac, no hosting** — double-click `start-labeler.command`. It serves the
+folder and opens the browser. macOS already has the Python it uses; there is
+nothing to install.
+
+Opening `index.html` by double-clicking it does *not* work — browsers block a
+local page from reading the data files next to it. It has to be served.
+
+### Giving labellers the video
+
+Each labeller needs the file locally. The original is 13 GB of HEVC; a 720p
+H.264 proxy of the same recording is about 1.7 GB, plays far more smoothly, and
+labels identically — the app checks **duration**, not file size, so a proxy is
+accepted and a different recording is not.
+
+```bash
+ffmpeg -i session.MP4 -vf scale=-2:720 -c:v libx264 -crf 23 -preset fast \
+       -c:a aac -movflags +faststart session-720p.mp4
+```
+
+Send it the way the study agreement allows. Not a personal cloud drive.
+
+---
+
+## Getting labels back into Fort's format
+
+The browser cannot write parquet, so the app exports the same working-draft JSON
+the local tool keeps:
+
+```bash
+python3 import_to_fort.py ~/Downloads/guru_20260831_1552__Priya__labels.json
+```
+
+That drops it in as the local tool's working state. Open `fort-annotator-demo`,
+enter the same labeler id, and press **Export revision** — the code already
+checked against Fort's own fixture writes `ground_truth.parquet` and the
+manifests.
+
+---
+
+## What ships in `data/`
 
 | file | what |
 |---|---|
-| `data/session.json` | exercise catalog, movement patterns, operator set log |
-| `data/overview.json` | \|accel\| min/max envelope, 3000 buckets |
-| `data/imu.bin` | 6 channels × 2 wrists, Int16, 50 Hz — 3.3 MB |
-| `data/imu.json` | header: scales, layout, sample count |
-| `data/labels/*.json` | the two delivered annotation sets |
+| `session.json` | the 25-set plan from the trainer's log, plus the exercise catalog |
+| `overview.json` | \|accel\| envelope, 3000 buckets |
+| `imu.bin` | 6 channels × 2 wrists, Int16, 50 Hz — 3.3 MB |
+| `imu.json` | scales, layout, sample count |
+| `labels/*.json` | the two delivered passes, for comparison |
 
-`imu.bin` is a render copy, not the capture. The capture is 544,264 rows at
-~100 Hz in `samples.parquet`; this is resampled to 50 Hz and quantised to Int16
-purely so a browser can hold the session in memory and draw any window without
-a round trip. Labels are never derived from it — every boundary in
-`data/labels/` was marked against the video.
+`imu.bin` is a **render copy**, never a label source. The capture itself is
+544,264 rows at ~100 Hz in `samples.parquet`; this is resampled so a browser can
+hold the session in memory and draw any window without a server round trip.
 
 Session seconds are `corrected_timestamp_s − 1000.0`. Video maps on as
-`session = video + (−0.582)`, measured from the sync clap.
-
-Rebuild the data with `bake.py` after re-running `fort_capture_package.py`.
+`session = video + (−0.582)`, measured from the sync clap. Rebuild everything
+with `bake.py` after re-running `fort_capture_package.py`.
