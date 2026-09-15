@@ -4,10 +4,25 @@
 <title>Weekday Labeler</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>⏱️</text></svg>">
 <style>
+  /* Light is the default: this gets read on a laptop in an office, not in a
+     dark room. Dark is a toggle, remembered per browser. */
   :root{
+    --bg:#f4f6f9; --panel:#ffffff; --panel2:#eef1f6; --line:#dbe1ea;
+    --ink:#161c25; --ink2:#5d6875; --ink3:#8a94a2;
+    --accent:#1f74e0; --ok:#0f8f5e; --warn:#a9700f; --bad:#cf3f30;
+    --shadow:0 1px 2px rgba(20,30,50,.06),0 4px 14px rgba(20,30,50,.05);
+    --canvas:#ffffff; --cgrid:#0000000f; --cbars:#00000014; --cink:#7b8593;
+    --clane:#e6ebf2; --clane2:#dbe2ec; --ctrace:#1d2631;
+    --covl:#3a6ea5; --covr:#7d9bc0; --cghost:#00000088; --cview:#161c25aa;
+  }
+  [data-theme="dark"]{
     --bg:#14161a; --panel:#1c2027; --panel2:#232833; --line:#333a46;
     --ink:#e8ecf2; --ink2:#98a2b3; --ink3:#6b7688;
     --accent:#4a9eff; --ok:#3ecf8e; --warn:#e0a54a; --bad:#ff7a6e;
+    --shadow:0 1px 2px rgba(0,0,0,.3);
+    --canvas:#0f1115; --cgrid:#ffffff0e; --cbars:#ffffff14; --cink:#6b7688;
+    --clane:#1d2430; --clane2:#232936; --ctrace:#e8ecf2;
+    --covl:#7f9ec4; --covr:#5a7fa8; --cghost:#ffffff99; --cview:#e8ecf2aa;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
@@ -17,7 +32,7 @@
   header h1{font-size:15px;margin:0;font-weight:700;letter-spacing:-.1px;white-space:nowrap}
   .spacer{flex:1}
   .sub{color:var(--ink2);font-size:12px}
-  button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);
+  button{background:var(--panel);color:var(--ink);border:1px solid var(--line);
          border-radius:7px;padding:7px 13px;font-size:13px;cursor:pointer;font-weight:600;
          font-family:inherit}
   button:hover:not(:disabled){border-color:var(--accent)}
@@ -30,20 +45,20 @@
   .tabs button{border:0;background:transparent;padding:5px 14px;border-radius:6px;color:var(--ink2)}
   .tabs button.on{background:var(--accent);color:#06121f}
   .wrap{padding:14px 16px;display:flex;flex-direction:column;gap:14px;max-width:1500px;margin:0 auto}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow)}
   .kicker{font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink2);
           font-weight:700;margin-bottom:8px}
   .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums}
   .hint{color:var(--ink2);font-size:12px}
   video{width:100%;background:#000;border-radius:9px;display:block}
-  kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
       padding:1px 6px;font-size:11px;font-family:ui-monospace,Menlo,monospace;color:var(--ink2)}
   .pill{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;
         background:var(--panel2);border:1px solid var(--line);white-space:nowrap}
   .pill.on{background:rgba(62,207,142,.15);border-color:var(--ok);color:var(--ok)}
   .pill.warn{background:rgba(224,165,74,.15);border-color:var(--warn);color:var(--warn)}
   .pill.bad{background:rgba(255,122,110,.15);border-color:var(--bad);color:var(--bad)}
-  input,select,textarea{background:var(--bg);color:var(--ink);border:1px solid var(--line);
+  input,select,textarea{background:var(--panel);color:var(--ink);border:1px solid var(--line);
     border-radius:6px;padding:7px 9px;font-size:13px;font-family:inherit;width:100%}
   select.inline{width:auto;padding:5px 9px}
 
@@ -56,7 +71,7 @@
   .facts{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
 
   .steps{display:flex;flex-direction:column;gap:8px}
-  .step{display:flex;align-items:center;gap:11px;background:var(--bg);border:1px solid var(--line);
+  .step{display:flex;align-items:center;gap:11px;background:var(--panel2);border:1px solid var(--line);
         border-radius:9px;padding:9px 11px;cursor:pointer;transition:border-color .12s,background .12s}
   .step:hover{border-color:var(--accent)}
   .step .num{width:24px;height:24px;flex:0 0 24px;border-radius:50%;background:var(--panel2);
@@ -87,7 +102,7 @@
   /* ------------------------------------------------------------- frames */
   .thumb{background:#000;border-radius:7px;overflow:hidden;border:1px solid var(--line);
          display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
-  .thumbPh{background:#0d0f13;border-radius:7px;border:1px dashed var(--line);width:100%;
+  .thumbPh{background:var(--panel2);border-radius:7px;border:1px dashed var(--line);width:100%;
            aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;
            color:var(--ink3);font-size:11px;font-family:ui-monospace,Menlo,monospace}
   .quad{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
@@ -97,12 +112,13 @@
   .quad figcaption b{display:block;color:var(--ink);font-size:11px;font-weight:650}
 
   /* --------------------------------------------------------------- modal */
-  .modal{position:fixed;inset:0;background:rgba(6,8,12,.78);display:flex;align-items:center;
+  .modal{position:fixed;inset:0;background:rgba(16,22,34,.55);backdrop-filter:blur(2px);display:flex;align-items:center;
          justify-content:center;z-index:60;padding:18px}
   .modal .card{width:760px;max-width:100%;max-height:90vh;overflow:auto}
   .rowbtn{display:flex;gap:9px;align-items:center;margin-top:14px}
 
   /* ------------------------------------------------------------- qc view */
+  #qcSlot video{max-height:340px;width:auto;max-width:100%;margin:0 auto}
   .qcrow{display:grid;grid-template-columns:190px minmax(0,1fr) 120px;gap:14px;align-items:center;
          padding:12px 0;border-bottom:1px solid var(--line)}
   .qcrow:last-child{border-bottom:0}
@@ -116,8 +132,8 @@
   .gate.hot{border-color:var(--accent);background:rgba(74,158,255,.08)}
   .gate h2{margin:0 0 8px;font-size:18px}
   .boot{padding:60px 16px;text-align:center;color:var(--ink2)}
-  #hovShot{position:fixed;z-index:50;pointer-events:none;display:none;background:#000;
-           border:1px solid var(--line);border-radius:7px;overflow:hidden;box-shadow:0 10px 28px rgba(0,0,0,.6)}
+  #hovShot{position:fixed;z-index:50;pointer-events:none;display:none;background:var(--panel2);
+           border:1px solid var(--line);border-radius:7px;overflow:hidden;box-shadow:0 10px 28px rgba(16,22,34,.28)}
   #hovShot img{display:block;width:208px;height:117px;background:#000}
   #hovShot .t{font:11px ui-monospace,Menlo,monospace;color:var(--ink);background:var(--panel2);
               padding:3px 6px;text-align:center}
@@ -139,6 +155,7 @@
   </div>
   <span class="pill" id="progPill">0 / 25</span>
   <span class="pill" id="whoPill" title="click to change" style="cursor:pointer"></span>
+  <button id="btnTheme" class="ghost" title="Light / dark">☾</button>
   <button id="btnVideo" class="ghost">Video…</button>
   <button id="btnExport" class="primary">Export</button>
 </header>
@@ -169,8 +186,8 @@
     <div class="lab">
       <div style="min-width:0;display:flex;flex-direction:column;gap:14px">
         <div>
-          <video id="vid" preload="metadata" playsinline controls style="display:none"></video>
-          <div class="gate" id="gate">
+              <div id="labSlot"><video id="vid" preload="auto" playsinline controls style="display:none"></video></div>
+      <div class="gate" id="gate">
             <h2>Open the session video</h2>
             <p class="hint" style="margin:0 auto 16px;max-width:520px">
               The file stays on this computer — it is opened straight off the disk, never uploaded.
@@ -226,7 +243,7 @@
   <div id="vQc" style="display:none">
     <div class="card" id="qcPlayerCard" style="display:none">
       <div class="kicker">Preview · clicking any frame below jumps here</div>
-      <video id="vid2" playsinline controls muted style="max-height:340px"></video>
+      <div id="qcSlot"></div>
       <div class="hint mono" id="qcNow" style="margin-top:6px">—</div>
     </div>
     <div class="card">
@@ -312,7 +329,15 @@ let S=null, OV=null, IMU=null, SETS=[], GHOST=null;
 let MARKS={};                 // "exercise:set" -> {ex_start, rep_start, rep_end, ex_end, status, note}
 let curIdx=0, who='', viewName='label';
 let view={a:0,b:0}, follow=true, viewSpan=300, cursor=0;
-const vid = $('#vid'), vid2 = $('#vid2');
+const vid = $('#vid');
+/* Exactly one <video> for playback, moved between the Label pane and the Check
+   preview. A second element on the same source means a second decoder running
+   the same 13 GB HEVC file, and Safari runs out of them -- it stops handing
+   back frames, which is what turned the thumbnails black. */
+function placePlayer(){
+  const host = viewName==='qc' ? $('#qcSlot') : $('#labSlot');
+  if (vid.parentElement !== host) host.appendChild(vid);
+}
 
 const planKey = p => `${p.exercise}:${p.set_index}`;
 const curPlan = () => S.plan[curIdx];
@@ -423,7 +448,7 @@ let videoURL=null, videoKey='';
 function useFile(file){
   if (videoURL) URL.revokeObjectURL(videoURL);
   videoURL = URL.createObjectURL(file);
-  vid.src = videoURL; vid2.src = videoURL; shotSrc(videoURL);
+  vid.src = videoURL; shotSrc(videoURL);
   vid.style.display=''; $('#gate').style.display='none'; $('#qcPlayerCard').style.display='';
   vid.addEventListener('loadedmetadata', async ()=>{
     videoKey = `${file.size}:${vid.duration.toFixed(2)}`;
@@ -470,8 +495,36 @@ const hasVideo = () => !!videoURL;
    the cache that is a hundred seeks through a 13 GB file on every visit. */
 const TW=320, TH=180;
 const shot = document.createElement('video');
-shot.muted=true; shot.playsInline=true; shot.preload='metadata';
+shot.muted=true; shot.playsInline=true; shot.preload='auto';
+shot.setAttribute('playsinline',''); shot.setAttribute('muted','');
+/* Safari decodes nothing for a <video> that is detached from the document or
+   display:none, and drawImage() then paints an empty rectangle -- which is
+   exactly the row of black boxes this produced before. Park it in the page,
+   off to one side, rendered but invisible. */
+shot.style.cssText = 'position:fixed;left:-9999px;top:0;width:160px;height:90px;'+
+                     'opacity:.01;pointer-events:none;z-index:-1';
+document.body.appendChild(shot);
 const shotCv = Object.assign(document.createElement('canvas'), {width:TW, height:TH});
+const shotCx = shotCv.getContext('2d', {willReadFrequently:true});
+
+/* 'seeked' means the seek finished, not that the new frame has been presented.
+   Chrome is usually already there; Safari is a tick behind, and drawing on the
+   seeked event alone gives a black or stale frame. */
+function framePresented(){
+  if (shot.requestVideoFrameCallback) return new Promise(res=>{
+    let done=false; const fin=()=>{ if(!done){ done=true; res(); } };
+    try { shot.requestVideoFrameCallback(fin); } catch(e){ return fin(); }
+    setTimeout(fin, 500);
+  });
+  return new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(res)));
+}
+function looksBlank(){
+  try{
+    const d = shotCx.getImageData(0,0,Math.min(64,TW),Math.min(36,TH)).data;
+    for (let i=0;i<d.length;i+=4) if (d[i]>10||d[i+1]>10||d[i+2]>10) return false;
+    return true;
+  }catch(e){ return false; }
+}
 let frames=new Map(), shotQueue=Promise.resolve(), dirtyCache=false;
 
 function shotSrc(src){ frames=new Map(); shot.src=src; }
@@ -511,13 +564,22 @@ function grabFrame(tSession){
       let settled=false;
       const finish=u=>{ if(settled)return; settled=true; clearTimeout(tm);
         shot.removeEventListener('seeked',onSeek); res(u); };
-      const onSeek=()=>{ try{
-          shotCv.getContext('2d').drawImage(shot,0,0,TW,TH);
+      const onSeek=async()=>{ try{
+          await framePresented();
+          shotCx.drawImage(shot,0,0,TW,TH);
+          // One retry: a frame that comes back entirely black right after a
+          // seek is nearly always the decoder not being ready, not the gym
+          // lights being off.
+          if (looksBlank()){
+            await new Promise(r=>setTimeout(r,260));
+            await framePresented();
+            shotCx.drawImage(shot,0,0,TW,TH);
+          }
           const u=shotCv.toDataURL('image/jpeg',0.68);
           frames.set(key,u); dirtyCache=true; finish(u);
         }catch(err){ finish(null); } };
       shot.addEventListener('seeked',onSeek);
-      const tm=setTimeout(()=>finish(null),6000);
+      const tm=setTimeout(()=>finish(null),9000);
       try{ shot.currentTime = Number(key); }catch(err){ finish(null); }
     });
   });
@@ -533,7 +595,12 @@ function paintFrames(root=document){
     if (c){ swapFrame(el,c); continue; }
     if (el.dataset.lazy) continue;
     el.dataset.painted='pending';
-    grabFrame(t).then(u=>{ if(u) swapFrame(el,u); else delete el.dataset.painted; });
+    grabFrame(t).then(u=>{
+      if (u) return swapFrame(el,u);
+      delete el.dataset.painted;
+      frameFails++;
+      if (frameFails>=4) noteFrameTrouble();
+    });
   }
 }
 function swapFrame(el,url){
@@ -542,9 +609,38 @@ function swapFrame(el,url){
   img.dataset.frame=el.dataset.frame; img.dataset.painted='1';
   el.replaceWith(img);
 }
+let frameFails=0, frameWarned=false;
+function noteFrameTrouble(){
+  if (frameWarned) return;
+  frameWarned=true;
+  $('#vidPath').insertAdjacentHTML('beforeend',
+    '<div style="color:var(--warn);margin-top:4px">Frame previews are not coming back from this file. '+
+    'Everything else still works — marking, checking and exporting are unaffected. '+
+    'A 720p H.264 copy of the same recording fixes it.</div>');
+}
+
 const framePh = (t,lazy) => t==null
   ? '<div class="thumbPh">—</div>'
   : `<div class="thumbPh" data-frame="${t}"${lazy?' data-lazy="1"':''}>${clock(t)}</div>`;
+
+/* Canvas has no cascade, so the palette is read out of CSS once per theme and
+   the two themes stay defined in one place. */
+let CSSV={}, cssvTheme=null;
+function cv(n){
+  const t=document.documentElement.dataset.theme||'light';
+  if (cssvTheme!==t){ CSSV={}; cssvTheme=t; }
+  if (!(n in CSSV)) CSSV[n]=getComputedStyle(document.documentElement).getPropertyValue('--'+n).trim();
+  return CSSV[n];
+}
+function setTheme(t){
+  document.documentElement.dataset.theme=t;
+  localStorage.setItem('weekday-labeler:theme',t);
+  $('#btnTheme').textContent = t==='dark' ? '☀' : '☾';
+  if (S){ drawBar(); if (viewName==='data'){ drawOv(); drawDet(); } }
+}
+$('#btnTheme').onclick = ()=>
+  setTheme((document.documentElement.dataset.theme||'light')==='dark'?'light':'dark');
+setTheme(localStorage.getItem('weekday-labeler:theme') || 'light');
 
 /* ============================================================= playhead */
 const sessionT = () => hasVideo() ? vid.currentTime + S.video_offset_s : cursor;
@@ -556,9 +652,8 @@ function seek(t){
 }
 function seekPreview(t){
   if (!hasVideo()) return;
-  vid2.currentTime = Math.max(0, videoT(t));
+  vid.pause(); seek(t);
   $('#qcNow').textContent = `${clock(t)}  ·  ${fmt(t,3)}s`;
-  vid2.pause();
 }
 function viewFor(t){
   const half=Math.min(viewSpan,S.span_s)/2; let a=t-half,b=t+half;
@@ -591,6 +686,7 @@ $('#tabs').onclick = e => {
   $('#vLabel').style.display = viewName==='label'?'':'none';
   $('#vQc').style.display    = viewName==='qc'?'':'none';
   $('#vData').style.display  = viewName==='data'?'':'none';
+  placePlayer();
   if (viewName==='qc') renderQc();
   if (viewName==='data'){ drawOv(); drawDet(); renderTable(); }
 };
@@ -695,6 +791,8 @@ function issues(p,m){
   if (b-a < 5)   out.push(['warn',`exercise is only ${fmt(b-a,1)}s long`]);
   if (b-a > 180) out.push(['warn',`exercise runs ${fmt(b-a,1)}s — unusually long`]);
   if (re-rs < 3) out.push(['warn',`reps take only ${fmt(re-rs,1)}s`]);
+  if (m.rep_count!=null && p.reps_counted!=null && m.rep_count!==p.reps_counted)
+    out.push(['warn',`you counted ${m.rep_count} reps, the trainer logged ${p.reps_counted}`]);
   for (const [k,o] of Object.entries(MARKS)){
     if (k===planKey(p) || !done(o)) continue;
     if (a < o.ex_end-1e-6 && b > o.ex_start+1e-6){
@@ -738,8 +836,15 @@ function openReview(){
     ${probs.length?`<div class="flags" style="margin-top:10px">${probs.map(([k,msg])=>
       `<div class="flagmsg ${k==='bad'?'bad':''}">${k==='bad'?'✕':'!'} ${esc(msg)}</div>`).join('')}</div>`:''}
 
-    <label class="hint" style="display:block;margin-top:14px">Note (optional)
-      <input id="rNote" value="${esc(m.note||'')}" placeholder="anything odd about this set" style="margin-top:5px"></label>
+    <div class="grid2" style="display:grid;grid-template-columns:150px 1fr;gap:12px;margin-top:14px">
+      <label class="hint" style="display:block">Reps you counted
+        <input id="rReps" type="number" min="0" max="200" value="${m.rep_count ?? p.reps_counted ?? ''}"
+               style="margin-top:5px" class="mono">
+        <span style="display:block;margin-top:4px">${p.reps_counted!=null
+          ? `trainer logged ${p.reps_counted}` : 'nothing logged for this set'}</span></label>
+      <label class="hint" style="display:block">Note (optional)
+        <input id="rNote" value="${esc(m.note||'')}" placeholder="anything odd about this set" style="margin-top:5px"></label>
+    </div>
 
     <div class="rowbtn">
       <button id="rFlag" class="ghost">${m.status==='flag'?'Un-flag':'Flag for review'}</button>
@@ -766,7 +871,14 @@ function openReview(){
     saveNote(); m.saved_at=new Date().toISOString(); saveMarks(); closeModal();
     if (curIdx < S.plan.length-1) goto(curIdx+1); else renderAll();
   };
-  function saveNote(){ const v=$('#rNote')?.value.trim(); m.note = v || null; saveMarks(); }
+  function saveNote(){
+    const v=$('#rNote')?.value.trim(); m.note = v || null;
+    const r=$('#rReps')?.value;
+    // Only stored when it differs from the log, so an untouched field never
+    // shadows a later correction to the set log.
+    m.rep_count = (r==='' || r==null || Number(r)===p.reps_counted) ? null : Number(r);
+    saveMarks();
+  }
 }
 
 /* ============================================================ check view */
@@ -780,7 +892,7 @@ function renderQc(){
     return `<div class="qcrow" data-i="${i}">
       <div>
         <div style="font-weight:650">${i+1}. ${esc(p.label)}</div>
-        <div class="hint">set ${p.set_index}${p.reps_counted!=null?` · ${p.reps_counted} reps`:''}${p.rpe!=null?` · RPE ${p.rpe}`:''}</div>
+        <div class="hint">set ${p.set_index}${(m.rep_count ?? p.reps_counted)!=null?` · ${m.rep_count ?? p.reps_counted} reps`:''}${p.rpe!=null?` · RPE ${p.rpe}`:''}</div>
         ${m.note?`<div class="hint" style="margin-top:4px">“${esc(m.note)}”</div>`:''}
       </div>
       <div class="quad">${STEPS.map(s=>`
@@ -844,12 +956,12 @@ function drawBar(){
   const dpr=devicePixelRatio||1, w=c.clientWidth, h=c.clientHeight;
   if (c.width!==w*dpr||c.height!==h*dpr){ c.width=w*dpr; c.height=h*dpr; }
   const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0);
-  x.fillStyle='#0f1115'; x.fillRect(0,0,w,h);
+  x.fillStyle=cv('canvas'); x.fillRect(0,0,w,h);
 
   // faint sensor envelope as a backdrop, so quiet and busy stretches are visible
   if (OV){
     const hi=OV.wrists.right?.hi || OV.wrists.left.hi, n=hi.length;
-    x.fillStyle='#ffffff14';
+    x.fillStyle=cv('cbars');
     for (let k=0;k<n;k++) {
       const v=Math.min(1,hi[k]/40)*(h-18);
       x.fillRect(k/n*w, h-18-v, Math.max(1,w/n), v);
@@ -866,13 +978,13 @@ function drawBar(){
       const r0=m.rep_start/S.span_s*w, r1=m.rep_end/S.span_s*w;
       x.fillStyle='#3ecf8e'; x.fillRect(r0,h-22,Math.max(1,r1-r0),2);
     }
-    if (i===curIdx){ x.strokeStyle='#e8ecf2'; x.lineWidth=1;
+    if (i===curIdx){ x.strokeStyle=cv('ctrace'); x.lineWidth=1;
       x.strokeRect(x0-.5,.5,Math.max(2,x1-x0)+1,h-19); }
   });
-  x.font='10px ui-monospace,Menlo,monospace'; x.fillStyle='#6b7688';
+  x.font='10px ui-monospace,Menlo,monospace'; x.fillStyle=cv('cink');
   for (let t=0;t<S.span_s;t+=300){ const px=t/S.span_s*w;
-    x.fillStyle='#ffffff10'; x.fillRect(px,0,1,h-18);
-    x.fillStyle='#6b7688'; x.fillText(mmss(t),px+3,h-5); }
+    x.fillStyle=cv('cgrid'); x.fillRect(px,0,1,h-18);
+    x.fillStyle=cv('cink'); x.fillText(mmss(t),px+3,h-5); }
   const px=sessionT()/S.span_s*w;
   x.strokeStyle='#ff5d5d'; x.lineWidth=1.5;
   x.beginPath(); x.moveTo(px,0); x.lineTo(px,h-18); x.stroke();
@@ -977,7 +1089,7 @@ function myBands(x,w,h,a,b){
     }
   });
   if (GHOST){
-    x.setLineDash([3,3]); x.lineWidth=1; x.strokeStyle='#ffffff99';
+    x.setLineDash([3,3]); x.lineWidth=1; x.strokeStyle=cv('cghost');
     for (const s of GHOST.segments){
       if (s.label_type!=='exercise') continue;
       for (const t of [s.start_s,s.end_s]){
@@ -994,20 +1106,20 @@ function myBands(x,w,h,a,b){
 function drawOv(){
   if(!OV) return;
   const [x,w,h]=fit($('#ov'));
-  x.fillStyle='#0f1115'; x.fillRect(0,0,w,h);
+  x.fillStyle=cv('canvas'); x.fillRect(0,0,w,h);
   myBands(x,w,h,0,S.span_s);
   const names=Object.keys(OV.wrists), lane=h/names.length;
   names.forEach((nm,i)=>{
     const {lo,hi}=OV.wrists[nm], n=lo.length, base=i*lane;
-    x.strokeStyle=i?'#5a7fa8':'#7f9ec4'; x.lineWidth=1; x.beginPath();
+    x.strokeStyle=i?cv('covr'):cv('covl'); x.lineWidth=1; x.beginPath();
     for(let k=0;k<n;k++){ const px=k/n*w, sc=lane/40;
       x.moveTo(px,base+lane-Math.min(lane,lo[k]*sc));
       x.lineTo(px,base+lane-Math.min(lane,hi[k]*sc)); }
     x.stroke();
-    x.fillStyle='#98a2b3'; x.font='10px ui-monospace,Menlo,monospace'; x.fillText(nm,5,base+11);
+    x.fillStyle=cv('cink'); x.font='10px ui-monospace,Menlo,monospace'; x.fillText(nm,5,base+11);
   });
   const a=view.a/S.span_s*w,b=view.b/S.span_s*w;
-  x.strokeStyle='#e8ecf2aa'; x.lineWidth=1; x.strokeRect(a,.5,Math.max(2,b-a),h-1);
+  x.strokeStyle=cv('cview'); x.lineWidth=1; x.strokeRect(a,.5,Math.max(2,b-a),h-1);
 }
 const chanBase=(w,c)=>(w*6+c)*IMU.samples;
 function colMinMax(wi,ch,i0,i1){
@@ -1026,17 +1138,17 @@ function magMinMax(wi,i0,i1){
 function drawDet(){
   if(!IMU) return;
   const [x,w,h]=fit($('#det')); const {a,b}=view;
-  x.fillStyle='#0f1115'; x.fillRect(0,0,w,h);
+  x.fillStyle=cv('canvas'); x.fillRect(0,0,w,h);
   myBands(x,w,h,a,b);
   const lane=h/IMU.order.length, A_MAX=32,G_MAX=10,M_MAX=40;
   const ACOL=['#d2617a','#3ecf8e','#5b8fd6'], GCOL=['#e0a54a','#b0a4d8','#5fc6c9'];
   const R=IMU.rate_hz, W=Math.max(1,Math.round(w));
   IMU.order.forEach((nm,wi)=>{
     const base=wi*lane, sub=(lane-14)/3, yA=base+12, yG=yA+sub, yM=yG+sub;
-    const panel=(y0,label)=>{ x.strokeStyle='#232936'; x.lineWidth=1;
+    const panel=(y0,label)=>{ x.strokeStyle=cv('clane2'); x.lineWidth=1;
       x.beginPath(); x.moveTo(0,y0+sub); x.lineTo(w,y0+sub); x.stroke();
-      x.fillStyle='#6b7688'; x.font='9px ui-monospace,Menlo,monospace'; x.fillText(label,5,y0+10); };
-    x.strokeStyle='#1d2430'; x.lineWidth=1;
+      x.fillStyle=cv('cink'); x.font='9px ui-monospace,Menlo,monospace'; x.fillText(label,5,y0+10); };
+    x.strokeStyle=cv('clane'); x.lineWidth=1;
     [yA,yG].forEach(y0=>{ x.beginPath(); x.moveTo(0,y0+sub/2); x.lineTo(w,y0+sub/2); x.stroke(); });
     panel(yA,`accel m/s²  ±${A_MAX}`); panel(yG,`gyro rad/s  ±${G_MAX}`); panel(yM,`|accel|  0–${M_MAX}`);
     const draw=(y0,get,col,scale,centre)=>{
@@ -1055,15 +1167,15 @@ function drawDet(){
     };
     for(let c=0;c<3;c++) draw(yA,(wi,i0,i1)=>colMinMax(wi,c,i0,i1),ACOL[c],A_MAX,true);
     for(let c=3;c<6;c++) draw(yG,(wi,i0,i1)=>colMinMax(wi,c,i0,i1),GCOL[c-3],G_MAX,true);
-    draw(yM,magMinMax,'#e8ecf2',M_MAX,false);
-    x.fillStyle='#98a2b3'; x.font='10px ui-monospace,Menlo,monospace';
+    draw(yM,magMinMax,cv('ctrace'),M_MAX,false);
+    x.fillStyle=cv('cink'); x.font='10px ui-monospace,Menlo,monospace';
     x.fillText(`${nm}  ${IMU.wrists[nm].samples.toLocaleString()} samples · ${R} Hz render copy`,5,base+9);
   });
   const span=b-a, step=span>600?60:span>300?30:span>120?20:span>30?5:1;
   x.font='10px ui-monospace,Menlo,monospace';
   for(let t=Math.ceil(a/step)*step;t<b;t+=step){ const p=(t-a)/(b-a)*w;
-    x.fillStyle='#ffffff0e'; x.fillRect(p,0,1,h);
-    x.fillStyle='#6b7688'; x.fillText(mmss(t),p+3,h-3); }
+    x.fillStyle=cv('cgrid'); x.fillRect(p,0,1,h);
+    x.fillStyle=cv('cink'); x.fillText(mmss(t),p+3,h-3); }
 }
 function sigSeek(c,spanFn){
   let down=null;
@@ -1140,7 +1252,8 @@ function deriveSegments(){
       exercise:p.exercise, set_index:p.set_index, start_s:a, end_s:b,
       movement_pattern:p.movement_pattern, variation:p.variation,
       assistance:p.assistance, laterality:p.laterality, rpe:p.rpe, load_note:p.load_note,
-      reps_start_s:m.rep_start, reps_end_s:m.rep_end, rep_count:p.reps_counted,
+      reps_start_s:m.rep_start, reps_end_s:m.rep_end,
+      rep_count:(m.rep_count ?? p.reps_counted),
       notes:[p.notes,m.note].filter(Boolean).join(' · ')||null});
     t=b;
   }

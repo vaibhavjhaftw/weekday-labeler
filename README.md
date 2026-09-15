@@ -28,8 +28,9 @@ footage off third-party servers.
    **Save & next** — it moves to the next set on its own.
 5. When all 25 are done, open **Check**, then **Export**.
 
-You never type an exercise name, rep count or RPE. Those come from the trainer's
-set log and are filled in already. Your job is only *when*.
+You never type an exercise name or RPE — those come from the trainer's set log
+and are filled in already. Your job is *when*, plus confirming the rep count if
+it differs from what was logged.
 
 ### Keys
 
@@ -61,6 +62,31 @@ Export and send the file.
   compare.
 
 ---
+
+## Where the exercise, reps and RPE come from
+
+They are **not** guessed and interns do not type them. Each session ships with
+the trainer's set log — `set_log_template.csv` is the format:
+
+```
+session_id,exercise,set_index,set_role,reps_counted,rpe,load,assistance,laterality,variation,notes
+guru_20260831_1552,pull_ups,1,warm_up,10,4,body only,assisted,bilateral,,
+```
+
+The split is deliberate:
+
+- **RPE cannot be labelled from video.** It is how hard the set *felt*, reported
+  by the participant at the time. Nobody watching a recording can recover it, so
+  it has to be captured in the gym.
+- **Load, assistance and variation** are the same — visible sometimes, reliable
+  only from the log.
+- **Rep count can be checked from video**, so the review card shows the logged
+  number in an editable field. Change it and Check flags the disagreement rather
+  than silently overwriting; both numbers reach the export, which is what Fort's
+  rep reconciliation compares.
+
+One row per set, filled at capture time. `bake.py` turns it into the 25-set plan
+the app walks through.
 
 ## Running it
 
@@ -124,6 +150,8 @@ manifests.
 | `imu.bin` | 6 channels × 2 wrists, Int16, 50 Hz — 3.3 MB |
 | `imu.json` | scales, layout, sample count |
 | `labels/*.json` | the two delivered passes, for comparison |
+
+`set_log_template.csv` is the trainer's sheet for a new session.
 
 `imu.bin` is a **render copy**, never a label source. The capture itself is
 544,264 rows at ~100 Hz in `samples.parquet`; this is resampled so a browser can
