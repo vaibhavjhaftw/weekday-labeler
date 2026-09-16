@@ -128,26 +128,33 @@
   .flagmsg.bad{color:var(--bad)}
 
   /* --------------------------------------------------------------- gate */
-  .setup{max-width:940px;margin:0 auto}
-  .steps2{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
-  @media (max-width:860px){ .steps2{grid-template-columns:1fr} }
-  .stepno{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
-          border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:700;margin-right:8px}
-  .pick{border:1px solid var(--line);border-radius:9px;padding:11px 12px;cursor:pointer;
-        display:flex;gap:10px;align-items:flex-start;margin-bottom:7px;background:var(--panel)}
-  .pick:hover{border-color:var(--accent)}
-  .pick.on{border-color:var(--accent);background:rgba(31,116,224,.07);box-shadow:0 0 0 1px var(--accent) inset}
-  .pick .r{width:16px;height:16px;flex:0 0 16px;border-radius:50%;border:2px solid var(--line);margin-top:2px}
-  .pick.on .r{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 3px var(--panel)}
-  .pick b{display:block;font-size:13px}
-  .pick small{color:var(--ink2);font-size:11.5px;line-height:1.45;display:block;margin-top:2px}
+  /* One column, one step under the next. Two side-by-side panels read as two
+     unrelated jobs and left people unsure which to do first. */
+  .setup{max-width:580px;margin:0 auto}
+  .stepcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+            padding:16px 18px;box-shadow:var(--shadow);margin-bottom:12px}
+  .stephead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .stepno{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+          flex:0 0 24px;border-radius:50%;background:var(--panel2);color:var(--ink2);
+          font-size:12px;font-weight:700;border:1px solid var(--line)}
+  .stepcard.done .stepno{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .stephead h3{margin:0;font-size:15px;font-weight:650;flex:1}
+  .stephead .tick{font-size:12px;color:var(--ok);font-weight:600}
+  .bigsel{font-size:14px;padding:10px 11px;background:var(--panel2)}
+  .meta{font-size:12px;color:var(--ink2);margin-top:8px;line-height:1.5}
   .tabsm{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line);
-         border-radius:8px;padding:2px;margin-bottom:11px}
-  .tabsm button{flex:1;border:0;background:transparent;padding:6px 8px;border-radius:6px;
-                color:var(--ink2);font-size:12.5px}
-  .tabsm button.on{background:var(--accent);color:#fff}
-  .drop{border:1px dashed var(--line);border-radius:9px;padding:16px;text-align:center;background:var(--panel2)}
+         border-radius:9px;padding:3px;margin-bottom:12px}
+  .tabsm button{flex:1;border:0;background:transparent;padding:7px 8px;border-radius:7px;
+                color:var(--ink2);font-size:13px;font-weight:600}
+  .tabsm button.on{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+  .drop{border:1px dashed var(--line);border-radius:10px;padding:16px;text-align:center;
+        background:var(--panel2)}
   .drop.hot{border-color:var(--accent);background:rgba(31,116,224,.10)}
+  .go{width:100%;padding:13px;font-size:15px;border-radius:10px}
+  .skip{display:block;width:100%;text-align:center;background:none;border:0;color:var(--ink2);
+        font-size:12.5px;padding:9px;text-decoration:underline;font-weight:500}
+  .skip:hover{color:var(--accent)}
+  .ready{font-size:12.5px;margin-top:10px}
   #fab{position:fixed;right:18px;bottom:18px;z-index:45;background:var(--accent);color:#fff;
        border-color:var(--accent);border-radius:99px;padding:11px 18px;font-size:13px;font-weight:700;
        box-shadow:0 6px 20px rgba(31,116,224,.4)}
@@ -215,70 +222,74 @@
 </div>
 
 <div class="wrap setup" id="setup" style="display:none">
-  <div class="card" style="margin-bottom:14px">
-    <h2 style="margin:0 0 3px;font-size:18px">Set up this job</h2>
-    <p class="hint" style="margin:0">Two choices, then you are labelling. Both are remembered.</p>
+  <div style="text-align:center;margin-bottom:6px">
+    <h2 style="margin:0 0 4px;font-size:20px">Set up this job</h2>
+    <p class="hint" style="margin:0">Two choices and you are labelling. Both are remembered.</p>
   </div>
-  <div class="steps2">
-    <div class="card">
-      <div style="font-weight:700;margin-bottom:10px"><span class="stepno">1</span>Which session?</div>
-      <div id="sessPicks"></div>
-      <div class="drop" id="csvDrop" style="margin-top:10px">
-        <b style="font-size:13px">＋ New session from a set log</b>
-        <p class="hint" style="margin:5px 0 10px">
-          The trainer's CSV — one row per set with the exercise, reps and RPE.
-          That is where those numbers come from; none of it is guessed.
+
+  <div class="stepcard" id="step1">
+    <div class="stephead">
+      <span class="stepno">1</span><h3>Which session?</h3>
+      <span class="tick" id="tick1"></span>
+    </div>
+    <select id="sessSel" class="bigsel"></select>
+    <div class="meta" id="sessMeta"></div>
+
+    <div id="csvPanel" style="display:none;margin-top:12px">
+      <div class="drop" id="csvDrop">
+        <b style="font-size:13px">Upload the trainer's set log</b>
+        <p class="hint" style="margin:6px auto 12px;max-width:380px">
+          One row per set, with the exercise, reps and RPE. That is where those numbers
+          come from — nothing about a set is guessed from the video.
         </p>
-        <button id="csvPick">Choose CSV…</button>
-        <div class="hint" style="margin-top:7px">or drop it here ·
-          <a href="set_log_template.csv" download style="color:var(--accent)">template</a></div>
-        <div class="hint" id="csvErr" style="color:var(--bad);margin-top:7px"></div>
+        <button id="csvPick" class="primary">Choose CSV…</button>
+        <div class="hint" style="margin-top:8px">or drop it here ·
+          <a href="set_log_template.csv" download style="color:var(--accent)">download the template</a></div>
+        <div class="hint" id="csvErr" style="color:var(--bad);margin-top:8px"></div>
       </div>
-    </div>
-
-    <div class="card">
-      <div style="font-weight:700;margin-bottom:10px"><span class="stepno">2</span>Which video?</div>
-      <div class="tabsm" id="srcTabs">
-        <button data-s="file" class="on">On this computer</button>
-        <button data-s="url">Web link</button>
-        <button data-s="yt">YouTube</button>
-      </div>
-
-      <div class="srcpane" data-s="file">
-        <p class="hint" style="margin:0 0 10px">Everything works, still previews included.
-          Read off your disk, never uploaded.</p>
-        <div class="drop" id="fileDrop">
-          <button id="btnPick" class="primary">Choose video file…</button>
-          <div class="hint" style="margin-top:7px">or drop <span class="mono" id="gateName"></span> here</div>
-        </div>
-      </div>
-
-      <div class="srcpane" data-s="url" style="display:none">
-        <p class="hint" style="margin:0 0 10px">A direct link to an .mp4 — object storage, your own
-          server, anywhere. Behaves exactly like a local file, still previews and all, provided the
-          host allows it. Nothing for the labeller to download.</p>
-        <input id="urlBox" placeholder="https://…/session.mp4" spellcheck="false">
-        <button id="btnUrl" style="width:100%;margin-top:8px">Use this link</button>
-      </div>
-
-      <div class="srcpane" data-s="yt" style="display:none">
-        <p class="hint" style="margin:0 0 10px">Timings come out just as exact. The one loss is
-          still previews — YouTube will not let a page read its pixels, so you get a jump button
-          instead.</p>
-        <input id="ytUrl" placeholder="YouTube link or video ID" spellcheck="false">
-        <button id="btnYt" style="width:100%;margin-top:8px">Use this video</button>
-      </div>
-
-      <div class="hint" id="ytErr" style="color:var(--bad);margin-top:9px"></div>
-      <div class="hint" id="srcState" style="margin-top:9px"></div>
     </div>
   </div>
 
-  <div class="card" style="margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-    <div id="setupSummary" class="hint" style="flex:1;min-width:220px"></div>
-    <button id="btnSkipVideo" class="ghost">Carry on without a video</button>
-    <button id="btnStart" class="primary" style="padding:10px 24px;font-size:15px" disabled>Start labelling</button>
+  <div class="stepcard" id="step2">
+    <div class="stephead">
+      <span class="stepno">2</span><h3>Which video?</h3>
+      <span class="tick" id="tick2"></span>
+    </div>
+    <div class="tabsm" id="srcTabs">
+      <button data-s="file" class="on">On this computer</button>
+      <button data-s="url">Web link</button>
+      <button data-s="yt">YouTube</button>
+    </div>
+
+    <div class="srcpane" data-s="file">
+      <div class="drop" id="fileDrop">
+        <button id="btnPick" class="primary">Choose video file…</button>
+        <div class="hint" style="margin-top:8px">or drop <span class="mono" id="gateName"></span> here</div>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Read off your disk, never uploaded. Everything
+        works, including the still previews.</p>
+    </div>
+
+    <div class="srcpane" data-s="url" style="display:none">
+      <input id="urlBox" placeholder="https://…/session.mp4" spellcheck="false">
+      <button id="btnUrl" style="width:100%;margin-top:8px">Use this link</button>
+      <p class="hint" style="margin:10px 0 0">A direct link to an .mp4 — nothing for the labeller
+        to download, and the still previews still work if the host allows it.</p>
+    </div>
+
+    <div class="srcpane" data-s="yt" style="display:none">
+      <input id="ytUrl" placeholder="YouTube link or video ID" spellcheck="false">
+      <button id="btnYt" style="width:100%;margin-top:8px">Use this video</button>
+      <p class="hint" style="margin:10px 0 0">Timings come out just as exact. The one loss is the
+        still previews — YouTube will not let a page read its pixels.</p>
+    </div>
+
+    <div class="hint" id="ytErr" style="color:var(--bad);margin-top:9px"></div>
+    <div class="ready" id="srcState"></div>
   </div>
+
+  <button id="btnStart" class="primary go" disabled>Start labelling</button>
+  <button id="btnSkipVideo" class="skip">open it without a video</button>
 </div>
 
 <button id="fab" style="display:none">⇄ Switch video or session</button>
@@ -558,7 +569,7 @@ function showSetup(){
   $('#whoPill').textContent = who;
   const last = localStorage.getItem('weekday-labeler:lastSession');
   if (!pickedSession) pickedSession = allSessions().find(x=>x.session_id===last) || BUNDLED;
-  renderSessionPicks(); renderSetupState();
+  renderSessionSelect(); renderSetupState();
   const src = JSON.parse(localStorage.getItem('weekday-labeler:lastSource') || 'null');
   if (src?.kind==='yt'){ setSrcTab('yt'); $('#ytUrl').value = src.id; }
   else if (src?.kind==='url'){ setSrcTab('url'); $('#urlBox').value = src.url; }
@@ -567,20 +578,40 @@ function showSetup(){
   // only Chromium keeps one.
   if (!pickedSource){ pickedSource = src; renderSetupState(); restoreSource(); }
 }
-function renderSessionPicks(){
-  $('#sessPicks').innerHTML = allSessions().map(x=>{
-    const n = markCountFor(x.session_id);
-    return `<div class="pick ${x.session_id===pickedSession?.session_id?'on':''}" data-id="${esc(x.session_id)}">
-      <span class="r"></span>
-      <span><b>${esc(x.title || x.session_id)}</b>
-        <small>${x.plan.length} sets${x.kind==='bundled'?' · wrist sensors included':' · from your CSV'}${
-          n?` · <span style="color:var(--ok)">${n} already marked</span>`:''}</small></span></div>`;
-  }).join('');
-  $$('#sessPicks .pick').forEach(el=>el.onclick=()=>{
-    pickedSession = allSessions().find(x=>x.session_id===el.dataset.id);
-    renderSessionPicks(); renderSetupState();
-  });
+function renderSessionSelect(){
+  const list = allSessions();
+  $('#sessSel').innerHTML =
+    list.map(x=>`<option value="${esc(x.session_id)}" ${x.session_id===pickedSession?.session_id?'selected':''}
+      >${esc(x.session_id)} — ${x.plan.length} sets</option>`).join('') +
+    '<option disabled>──────────</option>' +
+    `<option value="__new">＋ Add a session from a set log…</option>`;
+  renderSessionMeta();
 }
+function renderSessionMeta(){
+  const x = pickedSession;
+  if (!x){ $('#sessMeta').textContent = 'Upload a set log to get started.'; return; }
+  const n = markCountFor(x.session_id);
+  const bits = [];
+  if (x.span_s && x.kind==='bundled') bits.push(mmss(x.span_s));
+  bits.push(`${x.plan.length} sets`);
+  bits.push(x.kind==='bundled' ? 'wrist sensors included' : 'from your set log');
+  $('#gateName').textContent = x.video_name || 'the video';
+  $('#sessMeta').innerHTML = bits.join(' · ') +
+    (n ? ` · <b style="color:var(--ok)">${n} set${n===1?'':'s'} already marked, you carry on from there</b>` : '');
+}
+$('#sessSel').onchange = e => {
+  if (e.target.value === '__new'){
+    $('#csvPanel').style.display='';
+    $('#csvPanel').scrollIntoView({block:'nearest', behavior:'smooth'});
+    // Leave the previous choice selected underneath, so cancelling costs nothing.
+    if (pickedSession) $('#sessSel').value = pickedSession.session_id;
+    renderSetupState();
+    return;
+  }
+  $('#csvPanel').style.display='none';
+  pickedSession = allSessions().find(x=>x.session_id===e.target.value) || null;
+  renderSessionMeta(); renderSetupState();
+};
 function markCountFor(sid){
   try{
     const m = JSON.parse(localStorage.getItem(`weekday-labeler:${sid}:marks`) || '{}');
@@ -588,14 +619,14 @@ function markCountFor(sid){
   }catch(e){ return 0; }
 }
 function renderSetupState(){
-  const ready = !!pickedSession;
-  $('#btnStart').disabled = !(ready && pickedSource);
-  const bits=[];
-  if (pickedSession) bits.push(`<b>${esc(pickedSession.session_id)}</b>, ${pickedSession.plan.length} sets`);
-  bits.push(pickedSource ? `video: ${esc(pickedSource.label)}` : 'no video chosen yet');
-  const n = pickedSession ? markCountFor(pickedSession.session_id) : 0;
-  if (n) bits.push(`<span style="color:var(--ok)">${n} set${n===1?'':'s'} already marked — you pick up where you left off</span>`);
-  $('#setupSummary').innerHTML = bits.join(' · ');
+  const okSess = !!pickedSession, okVid = !!pickedSource?.ready;
+  $('#step1').classList.toggle('done', okSess);
+  $('#step2').classList.toggle('done', okVid);
+  $('#tick1').textContent = okSess ? '✓' : '';
+  $('#tick2').textContent = okVid ? '✓' : '';
+  $('#btnStart').disabled = !(okSess && okVid);
+  $('#btnStart').textContent = okSess && okVid ? 'Start labelling  →' : 'Start labelling';
+  $('#btnSkipVideo').style.display = okSess && !okVid ? '' : 'none';
 }
 $('#btnStart').onclick = ()=>beginSession(pickedSession);
 $('#btnSkipVideo').onclick = ()=>{ if (pickedSession) beginSession(pickedSession); };
@@ -711,6 +742,13 @@ async function idbGet(store,k){ try{ const d=await idb();
 
 let videoURL=null, videoKey='', corsBlocked=false;
 
+/* Picking a second video before the first has finished loading leaves the first
+   one's listeners and range probe still in flight. They then land on top of the
+   new choice -- a 404 from the link you just replaced reporting itself against
+   the link that works. Every callback checks it is still the current pick. */
+let srcSeq = 0;
+const stillCurrent = n => n === srcSeq;
+
 /* Session clock = player clock + the measured sync offset, plus whatever nudge
    this particular copy of the video needs. A re-upload of the same recording
    usually needs none, but if it was topped and tailed even slightly every mark
@@ -719,9 +757,17 @@ let nudgeS = 0;
 const offsetS = () => (S?.video_offset_s ?? 0) + nudgeS;
 
 function srcState(html){ $('#srcState').innerHTML = html; }
+/* Chosen is not the same as working. A step that ticks the moment a link is
+   pasted sends someone off to label against a video that never loaded -- which
+   is exactly what a 404 did here. Ready is set by the player, not the click. */
 function setSource(kind, label, extra){
-  pickedSource = {kind, label, ...extra};
-  localStorage.setItem('weekday-labeler:lastSource', JSON.stringify(pickedSource));
+  pickedSource = {kind, label, ready:false, ...extra};
+  localStorage.setItem('weekday-labeler:lastSource',
+    JSON.stringify({kind, label, ...extra}));
+  renderSetupState();
+}
+function sourceReady(ok){
+  if (pickedSource) pickedSource.ready = ok;
   renderSetupState();
 }
 function setSrcTab(t){
@@ -767,11 +813,12 @@ function afterMediaReady(label, sizeNote){
       + durationNote(vid.duration) + nudgeUI();
     wireNudge(); renderAll();
   });
-  srcState(`<span style="color:var(--ok)">ready</span> · ${esc(label)} · ${fmt(vid.duration,1)}s${durationNote(vid.duration)}`);
-  renderSetupState();
+  srcState(`<span style="color:var(--ok)">✓ ready</span> · ${esc(label)} · ${fmt(vid.duration,1)}s${durationNote(vid.duration)}`);
+  sourceReady(true);
 }
 
 function useFile(file){
+  const seq = ++srcSeq;
   if (videoURL) URL.revokeObjectURL(videoURL);
   teardownYT();
   corsBlocked=false;
@@ -781,8 +828,13 @@ function useFile(file){
   vid.src = videoURL; shotSrc(videoURL);
   vid.style.display=''; $('#ytWrap').style.display='none'; $('#qcPlayerCard').style.display='';
   setSource('file', file.name);
-  vid.addEventListener('loadedmetadata', ()=>afterMediaReady(file.name, ` · ${GB(file.size)}`), {once:true});
-  vid.addEventListener('error', ()=>srcState('<span style="color:var(--bad)">that file would not play</span>'), {once:true});
+  vid.addEventListener('loadedmetadata', ()=>{
+    if (stillCurrent(seq)) afterMediaReady(file.name, ` · ${GB(file.size)}`);
+  }, {once:true});
+  vid.addEventListener('error', ()=>{
+    if (!stillCurrent(seq)) return;
+    srcState('<span style="color:var(--bad)">that file would not play</span>'); sourceReady(false);
+  }, {once:true});
 }
 
 /* A direct .mp4 link behaves exactly like a local file -- byte ranges, frame
@@ -790,6 +842,7 @@ function useFile(file){
    Without it the video still plays and only the stills are lost, so it degrades
    to the same shape as YouTube rather than failing. */
 function useUrl(url){
+  const seq = ++srcSeq;
   if (videoURL) URL.revokeObjectURL(videoURL);
   videoURL=null; teardownYT(); corsBlocked=false;
   P.mode='file';
@@ -803,6 +856,7 @@ function useUrl(url){
   vid.addEventListener('error', ()=>{
     srcState('<span style="color:var(--bad)">that link would not play — check it is a direct .mp4 '+
              'and the host allows other sites to load it</span>');
+    sourceReady(false);
   }, {once:true});
 }
 /* Seeking a video over http is byte-range requests underneath. A host that
@@ -811,13 +865,15 @@ function useUrl(url){
    ignoring every jump. Object storage does ranges; `python3 -m http.server`
    famously does not. Worth saying out loud rather than letting someone label
    against a video that will not move. */
-async function probeRange(url){
+async function probeRange(url, seq){
   try{
     const r = await fetch(url, {headers:{Range:'bytes=0-1'}});
+    if (!stillCurrent(seq)) return null;
     if (r.status === 206) return true;
     srcState('<span style="color:var(--bad)">This host will not serve part of a file '+
       `(it answered ${r.status}, not 206), so the video cannot be seeked — it rewinds instead. `+
       'Put the file on object storage (S3, R2, B2) or any server that supports range requests.</span>');
+    sourceReady(false);
     return false;
   }catch(e){ return null; }        // cross-origin probe blocked; say nothing
 }
@@ -887,6 +943,7 @@ function teardownYT(){
   if (!$('#ytPlayer')) $('#ytWrap').innerHTML='<div id="ytPlayer"></div>';
 }
 async function useYouTube(id){
+  const seq = ++srcSeq;
   $('#ytErr').textContent=''; srcState('loading…');
   try { await loadYTApi(); }
   catch(err){ $('#ytErr').textContent=String(err.message||err); srcState(''); return; }
@@ -902,6 +959,7 @@ async function useYouTube(id){
     playerVars:{rel:0, modestbranding:1, playsinline:1, controls:1, fs:1},
     events:{
       onReady: ()=>{
+        if (!stillCurrent(seq)) return;
         adoptDuration(P.duration());
         $('#vidPath').innerHTML =
           `YouTube ${esc(id)} · ${fmt(P.duration(),1)}s` + durationNote(P.duration()) + nudgeUI() +
@@ -910,12 +968,14 @@ async function useYouTube(id){
           'so timings are as good as off a file — but YouTube will not let a page read its pixels, '+
           'so you get a jump button instead of a still.</div>';
         wireNudge(); renderAll();
-        srcState(`<span style="color:var(--ok)">ready</span> · YouTube ${esc(id)} · ${fmt(P.duration(),1)}s${durationNote(P.duration())}`);
-        renderSetupState();
+        srcState(`<span style="color:var(--ok)">✓ ready</span> · YouTube ${esc(id)} · ${fmt(P.duration(),1)}s${durationNote(P.duration())}`);
+        sourceReady(true);
       },
       onError: ()=>{
+        if (!stillCurrent(seq)) return;
         srcState('<span style="color:var(--bad)">YouTube would not play that here. Unlisted is fine; '+
                  'private and embedding-disabled are not.</span>');
+        sourceReady(false);
       },
     },
   });
@@ -1008,7 +1068,8 @@ function takeCSV(file){
       saveUserSession(sess);
       pickedSession = sess;
       $('#csvErr').textContent='';
-      renderSessionPicks(); renderSetupState();
+      $('#csvPanel').style.display='none';
+      renderSessionSelect(); renderSetupState();
     }catch(err){ $('#csvErr').textContent = String(err.message||err); }
   };
   fr.onerror = ()=>{ $('#csvErr').textContent='could not read that file'; };
