@@ -13,7 +13,8 @@ footage off third-party servers.
 ## For whoever is labelling
 
 1. Open the link. Type your name once.
-2. **Choose video file…** and pick the session video you were given.
+2. Point it at the video — either **Choose video file…** for a copy on your own
+   machine, or paste the **YouTube link** you were given.
 3. For each set, mark four moments with <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>:
 
    | | |
@@ -49,6 +50,31 @@ you fix a mistake; there is no separate edit mode.
 Work is saved in your browser as you go, so closing the tab loses nothing. It is
 saved **per browser** — your marks are not visible to anyone else until you
 Export and send the file.
+
+### File or YouTube?
+
+Timings come out the same either way. On a paused player YouTube seeks to the
+exact millisecond asked for, and <kbd>,</kbd>/<kbd>.</kbd> step by exactly one
+frame — measured, not assumed.
+
+The one thing YouTube cannot do is hand a page its pixels, so there are **no
+still previews**: the review card and the Check grid show a *jump here* button
+where the thumbnail would be. Everything else — marking, checking, flagging,
+export — is identical.
+
+| | file | YouTube |
+|---|---|---|
+| seek accuracy (paused) | exact | exact |
+| frame stepping | yes | yes |
+| still previews | yes | no — jump instead |
+| needs the file locally | yes, ~1.7 GB proxy | no |
+| works on any machine | no | yes |
+
+Use the file when you want to eyeball four stills at a glance. Use YouTube when
+handing the job to someone who should not be shipped 13 GB.
+
+If the YouTube upload was trimmed at the front, every mark shifts by the same
+amount — the **nudge** box next to the video corrects it in one number.
 
 ### The three tabs
 
@@ -110,6 +136,12 @@ Opening `index.html` by double-clicking it does *not* work — browsers block a
 local page from reading the data files next to it. It has to be served.
 
 ### Giving labellers the video
+
+**YouTube** is the least friction: upload once, paste the link. Unlisted works;
+private and embedding-disabled do not. Upload at the native 1080p60 so the frame
+rate matches what the keyboard steps assume.
+
+**Or a local copy.**
 
 Each labeller needs the file locally. The original is 13 GB of HEVC; a 720p
 H.264 proxy of the same recording is about 1.7 GB, plays far more smoothly, and
