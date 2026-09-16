@@ -13,8 +13,8 @@ footage off third-party servers.
 ## For whoever is labelling
 
 1. Open the link. Type your name once.
-2. Point it at the video — either **Choose video file…** for a copy on your own
-   machine, or paste the **YouTube link** you were given.
+2. On the setup screen, pick the session and point it at the video. Both are
+   remembered, so a reload drops you straight back in.
 3. For each set, mark four moments with <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd>:
 
    | | |
@@ -51,30 +51,44 @@ Work is saved in your browser as you go, so closing the tab loses nothing. It is
 saved **per browser** — your marks are not visible to anyone else until you
 Export and send the file.
 
-### File or YouTube?
+### Nothing is lost if you close the tab
 
-Timings come out the same either way. On a paused player YouTube seeks to the
-exact millisecond asked for, and <kbd>,</kbd>/<kbd>.</kbd> step by exactly one
-frame — measured, not assumed.
+Every mark is written to this browser the instant you make it — the small
+**saved** flash next to the counter is that happening. Close the tab, reload,
+crash, come back tomorrow: the session picker shows how many sets you had done
+and you carry on from the next one. Marks are kept per session, so switching
+video or session never throws any away. The only thing that deletes them is the
+**Clear this session's marks** button, which asks first.
 
-The one thing YouTube cannot do is hand a page its pixels, so there are **no
-still previews**: the review card and the Check grid show a *jump here* button
-where the thumbnail would be. Everything else — marking, checking, flagging,
-export — is identical.
+The bottom-right **Switch video or session** button goes back to the setup
+screen. It tells you exactly what it will and will not touch before it does.
 
-| | file | YouTube |
-|---|---|---|
-| seek accuracy (paused) | exact | exact |
-| frame stepping | yes | yes |
-| still previews | yes | no — jump instead |
-| needs the file locally | yes, ~1.7 GB proxy | no |
-| works on any machine | no | yes |
+### Three ways to reach the video
 
-Use the file when you want to eyeball four stills at a glance. Use YouTube when
-handing the job to someone who should not be shipped 13 GB.
+| | file on your machine | direct web link | YouTube |
+|---|---|---|---|
+| seek accuracy (paused) | exact | exact | exact |
+| frame stepping | yes | yes | yes |
+| still previews | yes | yes, if the host allows it | no — jump instead |
+| labeller downloads anything | yes | no | no |
 
-If the YouTube upload was trimmed at the front, every mark shifts by the same
-amount — the **nudge** box next to the video corrects it in one number.
+A **direct web link** to an `.mp4` is the best of both: nothing to download and
+the stills still work. Two things the host must do —
+
+- **byte ranges.** Without them the video cannot be seeked at all; it rewinds to
+  whatever is buffered. The app checks and says so plainly. S3, R2 and B2 all do
+  ranges; `python3 -m http.server` does not, which is why `serve.py` is here.
+- **`Access-Control-Allow-Origin`.** Without it the video plays and seeks fine
+  but the stills are gone, and you get jump buttons as on YouTube.
+
+Cloudflare R2 is the easy answer: ranges and CORS out of the box, 10 GB free,
+and no charge for bandwidth.
+
+For YouTube, timings come out just as exact — measured, not assumed. The one
+loss is the stills, because it will not let a page read its pixels.
+
+If a re-upload was trimmed at the front, every mark shifts by the same amount —
+the **nudge** box next to the video corrects it in one number.
 
 ### The three tabs
 
@@ -91,8 +105,11 @@ amount — the **nudge** box next to the video corrects it in one number.
 
 ## Where the exercise, reps and RPE come from
 
-They are **not** guessed and interns do not type them. Each session ships with
-the trainer's set log — `set_log_template.csv` is the format:
+They are **not** guessed and interns do not type them. They come from the
+trainer's set log, which you load on the setup screen under **New session from a
+set log**. That builds the whole 25-set plan in the browser — no Python, no
+rebuild, nothing for a labeller to install. `set_log_template.csv` is the
+format:
 
 ```
 session_id,exercise,set_index,set_role,reps_counted,rpe,load,assistance,laterality,variation,notes
