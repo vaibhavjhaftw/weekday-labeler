@@ -133,7 +133,23 @@ the app walks through.
 
 ## Running it
 
-**Hosted** — any static host, nothing to build. For GitHub Pages:
+**Live at https://weekday-fort-labeler.vercel.app** — that is the link to send.
+
+Redeploy after any change:
+
+```bash
+vercel deploy --prod
+```
+
+`vercel.json` sets the headers that matter: the page itself must-revalidates, so
+a labeller always gets the current version without being told to hard-refresh,
+while `data/` keeps an hour of cache since it is the heavy part and rarely
+changes. Range and allow-origin are on for the whole site, so a video parked
+next to the app works as a **Web link** source.
+
+`vercel git connect` makes every push to main deploy on its own.
+
+**Hosted anywhere else** — any static host, nothing to build. For GitHub Pages:
 
 ```bash
 cd fort-labeler-web
