@@ -644,6 +644,11 @@ function beginSession(sess){
   if (!IMU && viewName==='data') $('#tabs').querySelector('[data-v="label"]').click();
   $('#sessLabel').textContent = S.title || S.session_id;
   $('#gateName').textContent = S.video_name || 'the video';
+  // The video is chosen on the setup screen, before there is a session to hang
+  // its length on -- so adoptDuration() no-opped there and a CSV session kept
+  // the 3600 s placeholder all the way into the export, where it became half an
+  // hour of rest that never happened. Adopt it here too, now that S exists.
+  if (hasVideo() && P.duration()) adoptDuration(P.duration());
   start();
 }
 
