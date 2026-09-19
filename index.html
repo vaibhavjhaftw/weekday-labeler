@@ -610,7 +610,10 @@ $('#sessSel').onchange = e => {
   }
   $('#csvPanel').style.display='none';
   pickedSession = allSessions().find(x=>x.session_id===e.target.value) || null;
-  renderSessionMeta(); renderSetupState();
+  renderSessionMeta();
+  // The video that fitted the last session may not fit this one.
+  if (hasVideo() && P.duration()) afterMediaReady(pickedSource?.label || 'video', '');
+  renderSetupState();
 };
 function markCountFor(sid){
   try{
@@ -801,18 +804,46 @@ function wireNudge(){
 }
 
 /* A session made from a CSV has no measured span until a video turns up. */
+/* Whichever session the video is about to be used against -- during setup that
+   is the one picked on screen, once labelling has started it is the live one. */
+const sessionInPlay = () => S || pickedSession;
+
 function adoptDuration(d){
-  if (!S || S.kind==='bundled' || !d || !isFinite(d)) return;
-  if (Math.abs((S.span_s||0) - d) < 0.5) return;
-  S.span_s = d; S.video_duration_s = d;
-  saveUserSession(stripRuntime(S));
-  view = viewFor(0); setWinLabel();
+  const sess = sessionInPlay();
+  if (!sess || !d || !isFinite(d)) return true;
+  // Take the length once, from the first video a session ever sees. Adopting it
+  // every time let a second, different recording quietly re-base the session --
+  // which is how 25 sets marked against a 25-minute video came to be read
+  // against a 45-minute one, every set landing somewhere else entirely.
+  if (sess.video_duration_s == null){
+    if (sess.kind !== 'bundled'){
+      sess.span_s = d; sess.video_duration_s = d;
+      saveUserSession(stripRuntime(sess));
+      if (sess === S){ view = viewFor(0); setWinLabel(); }
+    }
+    return true;
+  }
+  return Math.abs(sess.video_duration_s - d) <= 1.0;
+}
+function wrongVideoMsg(d){
+  const sess = sessionInPlay();
+  return `This recording is ${fmt(d,1)}s long, but <b>${esc(sess.session_id)}</b> was set up `+
+    `against one of ${fmt(sess.video_duration_s,1)}s. Every mark would land in the wrong place. `+
+    `Load the matching file, or switch to the session this video belongs to.`;
 }
 const stripRuntime = o => { const c={...o}; delete c.__imu; delete c.__ov; return c; };
 
 function afterMediaReady(label, sizeNote){
   videoKey = `${label}:${vid.duration.toFixed(2)}`;
-  adoptDuration(vid.duration);
+  const fits = adoptDuration(vid.duration);
+  if (!fits){
+    // Refusing here is the whole point: a mismatched recording does not produce
+    // slightly-off labels, it produces 25 sets pointing at the wrong moments.
+    srcState(`<span style="color:var(--bad)">${wrongVideoMsg(vid.duration)}</span>`);
+    $('#vidPath').innerHTML = `<span style="color:var(--bad)">${wrongVideoMsg(vid.duration)}</span>`;
+    sourceReady(false);
+    return;
+  }
   loadFrameCache().then(()=>{
     $('#vidPath').innerHTML = `${esc(label)}${sizeNote} · ${fmt(vid.duration,1)}s`
       + durationNote(vid.duration) + nudgeUI();
@@ -965,7 +996,11 @@ async function useYouTube(id){
     events:{
       onReady: ()=>{
         if (!stillCurrent(seq)) return;
-        adoptDuration(P.duration());
+        if (!adoptDuration(P.duration())){
+          srcState(`<span style="color:var(--bad)">${wrongVideoMsg(P.duration())}</span>`);
+          $('#vidPath').innerHTML = `<span style="color:var(--bad)">${wrongVideoMsg(P.duration())}</span>`;
+          sourceReady(false); return;
+        }
         $('#vidPath').innerHTML =
           `YouTube ${esc(id)} · ${fmt(P.duration(),1)}s` + durationNote(P.duration()) + nudgeUI() +
           ' · <span id="ytBias" style="color:var(--ink2)"></span>' +
@@ -1416,7 +1451,7 @@ function issues(p,m){
     if (k===planKey(p) || !done(o)) continue;
     if (a < o.ex_end-1e-6 && b > o.ex_start+1e-6){
       const q=S.plan.find(x=>planKey(x)===k);
-      out.push(['bad',`overlaps ${q?q.label+' set '+q.set_index:k}`]);
+      out.push(['bad',`overlaps ${q?q.label+' set '+q.set_index:k}`, S.plan.indexOf(q)]);
       break;
     }
   }
@@ -1429,7 +1464,6 @@ function openReview(){
   const t=k=>m[k];
   const dur=(x,y)=> (m[x]!=null&&m[y]!=null) ? fmt(m[y]-m[x],1)+'s' : '—';
   const probs=issues(p,m);
-  const blocking=probs.some(x=>x[0]==='bad');
 
   $('#modalHost').innerHTML = `
   <div class="modal" id="mBack"><div class="card">
@@ -1452,8 +1486,10 @@ function openReview(){
       <span>Rack <b class="mono">${dur('rep_end','ex_end')}</b></span>
       <span>Whole set <b class="mono">${dur('ex_start','ex_end')}</b></span>
     </div>
-    ${probs.length?`<div class="flags" style="margin-top:10px">${probs.map(([k,msg])=>
-      `<div class="flagmsg ${k==='bad'?'bad':''}">${k==='bad'?'✕':'!'} ${esc(msg)}</div>`).join('')}</div>`:''}
+    ${probs.length?`<div class="flags" style="margin-top:10px">${probs.map(([k,msg,go])=>
+      `<div class="flagmsg ${k==='bad'?'bad':''}">${k==='bad'?'✕':'!'} ${esc(msg)}`
+      + (go!=null && go>=0 ? ` <button data-goto="${go}" style="padding:1px 8px;font-size:11px;margin-left:4px">open that set</button>`:'')
+      + `</div>`).join('')}</div>`:''}
 
     <div class="grid2" style="display:grid;grid-template-columns:150px 1fr;gap:12px;margin-top:14px">
       <label class="hint" style="display:block">Reps you counted
@@ -1470,7 +1506,7 @@ function openReview(){
       <button id="rClear" class="danger ghost">Clear this set</button>
       <span class="spacer"></span>
       <button id="rBack">Keep editing</button>
-      <button id="rSave" class="good" ${blocking?'disabled':''}>Save &amp; next ⏎</button>
+      <button id="rSave" class="good">Save &amp; next ⏎</button>
     </div>
     <div class="hint" style="margin-top:8px">Click any frame to jump the video there.</div>
   </div></div>`;
@@ -1481,6 +1517,9 @@ function openReview(){
   });
   $('#mBack').onclick = e => { if (e.target.id==='mBack') saveNote(), closeModal(); };
   $('#rBack').onclick = ()=>{ saveNote(); closeModal(); };
+  $$('#modalHost [data-goto]').forEach(b=>b.onclick=()=>{
+    saveNote(); closeModal(); goto(Number(b.dataset.goto));
+  });
   $('#rFlag').onclick = ()=>{ m.status = m.status==='flag'?null:'flag'; saveNote(); saveMarks(); closeModal(); renderAll(); };
   $('#rClear').onclick = ()=>{
     if (!confirm('Clear all four marks for this set?')) return;
